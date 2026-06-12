@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<language_definitions>
+   <language processor="q32s"
+            endian="little"
+            size="32"
+            variant="default"
+            version="1.0"
+            slafile="q32s.sla"
+            processorspec="q32s.pspec"
+            id="q32s:LE:32:default">
+    <description>Jielie q32s</description>
+    <compiler name="default" spec="q32s.cspec" id="default"/>
+  </language> 
+
+</language_definitions>

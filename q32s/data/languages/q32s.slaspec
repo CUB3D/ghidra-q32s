@@ -1,0 +1,2840 @@
+# Sleigh specification file for q32s Processor
+# Instruction definitions from here https://kagaimiq.github.io/jielie/cpu/q32s.html
+
+define endian=little;
+define alignment=2;
+
+define space ram     type=ram_space      size=4  default;
+
+define space register type=register_space size=4;
+
+define token opbyte (16)
+	op0 = (0, 0)
+	op1 = (1, 1)
+	op2 = (2, 2)
+	op3 = (3, 3)
+	op4 = (4, 4)
+	op5 = (5, 5)
+	op6 = (6, 6)
+	op7 = (7, 7)
+	op8 = (8, 8)
+	op9 = (9, 9)
+	op10 = (10, 10)
+	op11 = (11, 11)
+	op12 = (12, 12)
+	op13 = (13, 13)
+	op14 = (14, 14)
+	op15 = (15, 15)
+	
+	op0_1 = (0, 1)
+	op0_4 = (0, 4)
+	op0_3 = (0, 3)
+	op4_6 = (4, 6)
+	op7_11 = (7, 11)
+	op8_11 = (8, 11)
+	
+	op0_15 = (0, 15)
+	op1_15 = (1, 15)
+	op2_15 = (2, 15)
+	op3_15 = (3, 15)
+	op4_15 = (4, 15)
+	op5_15 = (5, 15)
+	op6_15 = (6, 15)
+	op7_15 = (7, 15)
+	op8_15 = (8, 15)
+	op9_15 = (9, 15)
+	op11_15 = (11, 15)
+	op12_15 = (12, 15)
+	
+	imm0 = (0, 0)
+	imm3 = (3, 3)
+	
+	srx0_3 = (0,3)
+	rx0_3 = (0,3)
+	rx0_2 = (0,2)
+	rx9_11 = (9,11)
+	rx12_15 = (12,15)
+	
+	rz9_11 = (9, 11)
+	
+	
+	
+	ry6_8 = (6, 8)
+	ry3_5 = (3, 5)
+	ry4_7 = (4, 7)
+	ry8_11 = (8, 11)
+	ry9_11 = (9, 11)
+	ry12_15 = (12, 15)
+	
+	
+	rz6_8 = (6, 8)
+	rz4_7 = (4, 7)
+	rz8_11 = (8, 11)
+	
+	
+	
+	sry8_11 = (8, 11)
+	
+	imm0_8s = (0, 8) signed
+	imm0_5s = (0, 5) signed
+	imm0_5 = (0, 5)
+	imm0_4 = (0, 4)
+	imm0_6 = (0, 6)
+	imm0_7 = (0, 7)
+	imm3_10 = (3, 10)
+	imm4_5 = (4, 5)
+	imm4_7 = (4, 7)
+	imm4_8 = (4, 8)
+	imm6_10 = (6, 10)
+	imm4_11 = (4, 11)
+	imm4_11s = (4, 11) signed
+	imm7_11 = (7, 11)
+	imm0_10s = (0, 10) signed
+	imm1_10s = (1, 10) signed
+	imm1_8s = (1, 8) signed
+	
+	imm0_11 = (0, 11)
+	imm0_11s = (0, 11) signed
+	
+	imm0_12s = (0, 12) signed
+	
+	imm0_15s = (0, 15) signed
+	imm0_15 = (0, 15)
+	imm0_15_dup = (0, 15)
+	
+	
+	imm0_2 = (0, 2)
+;
+
+define register offset=0x00 size=4 [ 
+	r0 r1 r2 r3
+	r4 r5 r6 r7
+	r8 r9 r10 r11
+	r12 r13 r14 r15
+	
+	reti   # sr0
+	rete
+	retx
+	rets
+	sr4
+	psr
+	cnum
+	sr7
+	sr8
+	sr9
+	sr10
+	icfg
+	usp
+	ssp
+	sp
+	pc     # sr15
+];
+
+define register offset=0x100 size=64 [
+    testctx
+];
+
+define context testctx
+    stage         = (  0, 8) noflow
+    
+    #TODO: put in order
+    save_reti = (9, 9) noflow
+    save_rete = (10, 10) noflow
+    save_retx = (11, 11) noflow
+    save_rets = (12, 12) noflow
+    save_sr4 = (13, 13) noflow
+    save_psr = (14, 14) noflow
+    
+    save_r0 = (15, 15) noflow
+    save_r1 = (16, 16) noflow
+    save_r2 = (17, 17) noflow
+    save_r3 = (18, 18) noflow
+    save_r4 = (19, 19) noflow
+    save_r5 = (20, 20) noflow
+    save_r6 = (21, 21) noflow
+    save_r7 = (22, 22) noflow
+    save_r8 = (23, 23) noflow
+    save_r9 = (24, 24) noflow
+    save_r10 = (25, 25) noflow
+    save_r11 = (26, 26) noflow
+    save_r12 = (27, 27) noflow
+    save_r13 = (28, 28) noflow
+    save_r14 = (29, 29) noflow
+    save_r15 = (30, 30) noflow
+    
+    save_cnum = (31, 31) noflow
+    save_sr7 = (32, 32) noflow
+    save_sr8 = (33, 33) noflow
+    save_sr9 = (34, 34) noflow
+    save_sr10 = (35, 35) noflow
+    save_icfg = (36, 36) noflow
+    save_usp = (37, 37) noflow
+    save_ssp = (38, 38) noflow
+    save_sp = (39, 39) noflow
+    save_pc = (40, 40) noflow
+;
+
+
+attach variables [rx0_3 rx12_15 ry4_7 ry8_11 rz4_7 ry12_15 rz8_11] [
+	r0 r1 r2 r3
+	r4 r5 r6 r7
+	r8 r9 r10 r11
+	r12 r13 r14 r15
+];
+
+attach variables [rx0_2 ry6_8 ry3_5 ry9_11 rz6_8 rx9_11 rz9_11] [
+	r0 r1 r2 r3
+	r4 r5 r6 r7
+];
+
+attach variables [sry8_11 srx0_3] [
+	reti
+	rete
+	retx
+	rets
+	sr4
+	psr
+	cnum
+	sr7
+	sr8
+	sr9
+	sr10
+	icfg
+	usp
+	ssp
+	sp
+
+	# TODO: assign = goto
+	pc
+];
+
+#TODO: actually compute flags
+define bitrange V=psr[0,1] # Overflow
+				C=psr[1,1] # Carry
+				Z=psr[2,1] # Zero
+				N=psr[3,1] # Negative
+;
+
+#TODO: _stub
+#TODO: flag setting?
+
+define pcodeop _stub;
+
+macro push(v) {
+	sp = sp - 4;
+	*[ram]:4 sp = v;
+}
+
+macro pop(o) {
+	o = *[ram]:4 sp;
+	sp = sp + 4;
+}
+
+macro rotl32(out, a, b) {
+	local d:4 = b;
+	local n:4 = a;
+	local out1:4 = (n << d) | ( n >> (32 - d));
+	out = out1;
+}
+
+
+define pcodeop nop;
+
+:nop is op1_15=0b000000000000000 {
+	nop();
+}
+
+define pcodeop idle;
+
+:idle is op1_15=0b000000000000001 {
+	idle();
+}
+
+define pcodeop bkpt;
+
+:bkpt is op1_15=0b000000000000010 {
+	bkpt();
+}
+
+define pcodeop hbkpt;
+
+:hbkpt is op1_15=0b000000000000011 {
+	hbkpt();
+}
+
+define pcodeop csync;
+
+:csync is op1_15=0b000000000000100 {
+	csync();
+}
+
+define pcodeop ssync;
+
+:ssync is op1_15=0b000000000000101 {
+	ssync();
+}
+
+define pcodeop syscall;
+
+:syscall is op1_15=0b000000000000110 {
+	syscall();
+}
+
+define pcodeop lockclr;
+
+:lockclr is op2_15=0b00000000000100 {
+	lockclr();
+}
+
+define pcodeop lockset;
+
+:lockset is op2_15=0b00000000000101 {
+	lockset();
+}
+
+define pcodeop cli;
+
+:cli is op2_15=0b00000000000110 {
+	cli();
+}
+
+define pcodeop sti;
+
+:sti is op2_15=0b00000000000111 {
+	sti();
+}
+
+
+# Return to subroutine
+:rts is op1_15=0b000000000010000 {
+	return [rets];
+}
+
+:rti is op1_15=0b000000000010001 {
+    return [reti];
+}
+
+:rtx is op1_15=0b000000000010010 {
+	return [retx];
+}
+
+:rte is op1_15=0b000000000010011 {
+   return [rete];
+}
+
+define pcodeop swi;
+
+:swi imm0_2 is op3_15=0b0000000000101 & imm0_2 {
+	swi(imm0_2:1);
+}
+
+
+:pc = [sp++] is op2_15=0b00000000001100 & sp {
+	local tmp:4 = *[ram]:4 sp;
+	sp = sp + 4;
+	return [tmp];
+}
+
+:[--sp]=rets is op2_15=0b00000000001101 & sp & rets {
+	sp = sp - 4;
+	*[ram]:4 sp = rets;
+}
+
+:cc=0 is op1_15=0b000000000011100 {
+	C = 0;
+}
+:cc=1 is op1_15=0b000000000011101 {
+	C = 1;
+}
+
+:sp = usp is op0_15=0b0000000000111100 & usp {
+	sp = usp;
+}
+
+:sp = ssp is op0_15=0b0000000000111101 & ssp {
+	sp = ssp;
+}
+
+:usp = sp is op0_15=0b0000000000111110 & sp {
+	usp = sp;
+}
+
+:ssp = sp is op0_15=0b0000000000111111 & sp {
+	ssp = sp;
+}
+
+:testset "b"[rx0_3] is op5_15=0b00000000010 & rx0_3 {
+    # Assuming this works like 68k
+    local tmp:1 = *[ram]:1 rx0_3;
+    Z = tmp == 0;
+    N = tmp s< 0;
+	*[ram]:1 rx0_3 = tmp | (1 << 7);
+}
+
+
+:cli rx0_3 is op4_15=0b000000000110 & rx0_3 {
+	cli(rx0_3);
+}
+
+:sti rx0_3 is op4_15=0b000000000111 & rx0_3 {
+	sti(rx0_3);
+}
+
+:call rx0_3 is op4_15=0b000000001000 & rx0_3 {
+	rets = inst_next;
+	call [rx0_3];
+}
+
+:goto rx0_3 is op4_15=0b000000001001 & rx0_3 {
+	goto [rx0_3];
+}
+
+:tbb [rx0_3] is op4_15=0b000000001010 & rx0_3 {
+	local tmp:4 = inst_next + rx0_3;
+	local dest:4 = inst_next + (zext(*[ram]:1 tmp) << 1);
+	goto [dest];
+}
+
+:tbh [rx0_3] is op4_15=0b000000001011 & rx0_3 {
+	local tmp:4 = inst_next + rx0_3;
+	local dest:4 = inst_next + zext(*[ram]:2 tmp) << 1;
+	goto [dest];
+}
+
+define pcodeop pfetch;
+
+:pfetch [rx0_3] is op4_15=0b000000001100 & rx0_3 {
+	pfetch(rx0_3);
+}
+
+define pcodeop iflush;
+
+:iflush [rx0_3] is op4_15=0b000000001101 & rx0_3 {
+	iflush(rx0_3);
+}
+
+define pcodeop flush;
+
+:flush [rx0_3] is op4_15=0b000000001110 & rx0_3 {
+	flush(rx0_3);
+}
+
+define pcodeop flushinv;
+
+:flushinv [rx0_3] is op4_15=0b000000001111 & rx0_3 {
+	flushinv(rx0_3);
+}
+
+# Pop without rets
+
+:{r3-r0} = [sp++] is op6_15=0b0000000100 & op0_4=0b00000 & sp & r3 & r0 {
+	pop(r3);
+	pop(r2);
+	pop(r1);
+	pop(r0);
+}
+
+:{r3-r1} = [sp++] is op6_15=0b0000000100 & op0_4=0b00001 & sp & r3 & r1 {
+	pop(r3);
+	pop(r2);
+	pop(r1);
+}
+
+:{r3, r2} = [sp++] is op6_15=0b0000000100 & op0_4=0b00010 & sp & r3 & r2 {
+	pop(r3);
+	pop(r2);
+}
+
+:{r3} = [sp++] is op6_15=0b0000000100 & op0_4=0b00011 & sp & r3 {
+	pop(r3);
+}
+
+:{r4} = [sp++] is op6_15=0b0000000100 & op0_4=0b00100 & sp & r4 {
+	pop(r4);
+}
+
+:{r5, r4} = [sp++] is op6_15=0b0000000100 & op0_4=0b00101 & sp & r5 & r4 {
+	pop(r5);
+	pop(r4);
+}
+
+:{r6-r4} = [sp++] is op6_15=0b0000000100 & op0_4=0b00110 & sp & r6 & r4 {
+	pop(r6);
+	pop(r5);
+	pop(r4);
+}
+
+:{r7-r4} = [sp++] is op6_15=0b0000000100 & op0_4=0b00111 & sp & r7 & r4 {
+	pop(r7);
+	pop(r6);
+	pop(r5);
+	pop(r4);
+}
+
+:{r8-r4} = [sp++] is op6_15=0b0000000100 & op0_4=0b01000 & sp & r8 & r4 {
+	pop(r8);
+	pop(r7);
+	pop(r6);
+	pop(r5);
+	pop(r4);
+}
+
+:{r9-r4} = [sp++] is op6_15=0b0000000100 & op0_4=0b01001 & sp & r9 & r4 {
+	pop(r9);
+	pop(r8);
+	pop(r7);
+	pop(r6);
+	pop(r5);
+	pop(r4);
+}
+
+:{r10-r4} = [sp++] is op6_15=0b0000000100 & op0_4=0b01010 & sp & r10 & r4 {
+	pop(r10);
+	pop(r9);
+	pop(r8);
+	pop(r7);
+	pop(r6);
+	pop(r5);
+	pop(r4);
+}
+
+:{r11-r4} = [sp++] is op6_15=0b0000000100 & op0_4=0b01011 & sp & r11 & r4 {
+	pop(r11);
+	pop(r10);
+	pop(r9);
+	pop(r8);
+	pop(r7);
+	pop(r6);
+	pop(r5);
+	pop(r4);
+}
+
+:{r12-r4} = [sp++] is op6_15=0b0000000100 & op0_4=0b01100 & sp & r12 & r4 {
+	pop(r12);
+	pop(r11);
+	pop(r10);
+	pop(r9);
+	pop(r8);
+	pop(r7);
+	pop(r6);
+	pop(r5);
+	pop(r4);
+}
+
+:{r13-r4} = [sp++] is op6_15=0b0000000100 & op0_4=0b01101 & sp & r13 & r4 {
+	pop(r13);
+	pop(r12);
+	pop(r11);
+	pop(r10);
+	pop(r9);
+	pop(r8);
+	pop(r7);
+	pop(r6);
+	pop(r5);
+	pop(r4);
+}
+
+:{r14-r4} = [sp++] is op6_15=0b0000000100 & op0_4=0b01110 & sp & r14 & r4 {
+	pop(r14);
+	pop(r13);
+	pop(r12);
+	pop(r11);
+	pop(r10);
+	pop(r9);
+	pop(r8);
+	pop(r7);
+	pop(r6);
+	pop(r5);
+	pop(r4);
+}
+
+:{r15-r4} = [sp++] is op6_15=0b0000000100 & op0_4=0b01111 & sp & r15 & r4 {
+	pop(r15);
+	pop(r14);
+	pop(r13);
+	pop(r12);
+	pop(r11);
+	pop(r10);
+	pop(r9);
+	pop(r8);
+	pop(r7);
+	pop(r6);
+	pop(r5);
+	pop(r4);
+}
+
+# pop with rets
+
+:{rets, r3-r0} = [sp++] is op6_15=0b0000000100 & op0_4=0b10000 & rets & sp & r3 & r0 {
+	pop(r3);
+	pop(r2);
+	pop(r1);
+	pop(r0);
+	pop(rets);
+}
+
+:{rets, r3-r1} = [sp++] is op6_15=0b0000000100 & op0_4=0b10001 & rets & sp & r3 & r1 {
+	pop(r3);
+	pop(r2);
+	pop(r1);
+	pop(rets);
+}
+
+:{rets, r3, r2} = [sp++] is op6_15=0b0000000100 & op0_4=0b10010 & rets & sp & r3 & r2 {
+	pop(r3);
+	pop(r2);
+	pop(rets);
+}
+
+:{rets, r3} = [sp++] is op6_15=0b0000000100 & op0_4=0b10011 & rets & sp & r3 {
+	pop(r3);
+	pop(rets);
+}
+
+:{rets, r4} = [sp++] is op6_15=0b0000000100 & op0_4=0b10100 & rets & sp & r4 {
+	pop(r4);
+	pop(rets);
+}
+
+:{rets, r5, r4} = [sp++] is op6_15=0b0000000100 & op0_4=0b10101 & rets & sp & r5 & r4 {
+	pop(r5);
+	pop(r4);
+	pop(rets);
+}
+
+:{rets, r6-r4} = [sp++] is op6_15=0b0000000100 & op0_4=0b10110 & rets & sp & r6 & r4 {
+	pop(r6);
+	pop(r5);
+	pop(r4);
+	pop(rets);
+}
+
+:{rets, r7-r4} = [sp++] is op6_15=0b0000000100 & op0_4=0b10111 & rets & sp & r7 & r4 {
+	pop(r7);
+	pop(r6);
+	pop(r5);
+	pop(r4);
+	pop(rets);
+}
+
+:{rets, r8-r4} = [sp++] is op6_15=0b0000000100 & op0_4=0b11000 & rets & sp & r8 & r4 {
+	pop(r8);
+	pop(r7);
+	pop(r6);
+	pop(r5);
+	pop(r4);
+	pop(rets);
+}
+
+:{rets, r9-r4} = [sp++] is op6_15=0b0000000100 & op0_4=0b11001 & rets & sp & r9 & r4 {
+	pop(r9);
+	pop(r8);
+	pop(r7);
+	pop(r6);
+	pop(r5);
+	pop(r4);
+	pop(rets);
+}
+
+:{rets, r10-r4} = [sp++] is op6_15=0b0000000100 & op0_4=0b11010 & rets & sp & r10 & r4 {
+	pop(r10);
+	pop(r9);
+	pop(r8);
+	pop(r7);
+	pop(r6);
+	pop(r5);
+	pop(r4);
+	pop(rets);
+}
+
+:{rets, r11-r4} = [sp++] is op6_15=0b0000000100 & op0_4=0b11011 & rets & sp & r11 & r4 {
+	pop(r11);
+	pop(r10);
+	pop(r9);
+	pop(r8);
+	pop(r7);
+	pop(r6);
+	pop(r5);
+	pop(r4);
+	pop(rets);
+}
+
+:{rets, r12-r4} = [sp++] is op6_15=0b0000000100 & op0_4=0b11100 & rets & sp & r12 & r4 {
+	pop(r12);
+	pop(r11);
+	pop(r10);
+	pop(r9);
+	pop(r8);
+	pop(r7);
+	pop(r6);
+	pop(r5);
+	pop(r4);
+	pop(rets);
+}
+
+:{rets, r13-r4} = [sp++] is op6_15=0b0000000100 & op0_4=0b11101 & rets & sp & r13 & r4 {
+	pop(r13);
+	pop(r12);
+	pop(r11);
+	pop(r10);
+	pop(r9);
+	pop(r8);
+	pop(r7);
+	pop(r6);
+	pop(r5);
+	pop(r4);
+	pop(rets);
+}
+
+:{rets, r14-r4} = [sp++] is op6_15=0b0000000100 & op0_4=0b11110 & rets & sp & r14 & r4 {
+	pop(r14);
+	pop(r13);
+	pop(r12);
+	pop(r11);
+	pop(r10);
+	pop(r9);
+	pop(r8);
+	pop(r7);
+	pop(r6);
+	pop(r5);
+	pop(r4);
+	pop(rets);
+}
+
+:{rets, r15-r4} = [sp++] is op6_15=0b0000000100 & op0_4=0b11111 & rets & sp & r15 & r4 {
+	pop(r15);
+	pop(r14);
+	pop(r13);
+	pop(r12);
+	pop(r11);
+	pop(r10);
+	pop(r9);
+	pop(r8);
+	pop(r7);
+	pop(r6);
+	pop(r5);
+	pop(r4);
+	pop(rets);
+}
+
+# Pop with pc
+
+:{"pc", r3-r0} = [sp++] is op0_15=0b0000000101010000 & sp & r3 & r0 {
+	pop(r3);
+	pop(r2);
+	pop(r1);
+	pop(r0);
+	local tmp:4 = 0;
+	pop(tmp);
+	return [tmp];
+}
+
+:{"pc", r3-r1} = [sp++] is op0_15=0b0000000101010001 & sp & r3 & r1 {
+	pop(r3);
+	pop(r2);
+	pop(r1);
+	local tmp:4 = 0;
+	pop(tmp);
+	return [tmp];
+}
+
+:{"pc", r3, r2} = [sp++] is op0_15=0b0000000101010010 & sp & r3 & r2 {
+	pop(r3);
+	pop(r2);
+	local tmp:4 = 0;
+	pop(tmp);
+	return [tmp];
+}
+
+:{"pc", r3} = [sp++] is op0_15=0b0000000101010011 & sp & r3 {
+	pop(r3);
+	local tmp:4 = 0;
+	pop(tmp);
+	return [tmp];
+}
+
+:{"pc", r4} = [sp++] is op0_15=0b0000000101010100 & sp & r4 {
+	pop(r4);
+	local tmp:4 = 0;
+	pop(tmp);
+	return [tmp];
+}
+
+:{"pc", r5, r4} = [sp++] is op0_15=0b0000000101010101 & sp & r5 & r4 {
+	pop(r5);
+	pop(r4);
+	local tmp:4 = 0;
+	pop(tmp);
+	return [tmp];
+}
+
+:{"pc", r6-r4} = [sp++] is op0_15=0b0000000101010110 & sp & r6 & r4 {
+	pop(r6);
+	pop(r5);
+	pop(r4);
+	local tmp:4 = 0;
+	pop(tmp);
+	return [tmp];
+}
+
+:{"pc", r7-r4} = [sp++] is op0_15=0b0000000101010111 & sp & r7 & r4 {
+	pop(r7);
+	pop(r6);
+	pop(r5);
+	pop(r4);
+	local tmp:4 = 0;
+	pop(tmp);
+	return [tmp];
+}
+
+:{"pc", r8-r4} = [sp++] is op0_15=0b0000000101011000 & sp & r8 & r4 {
+	pop(r8);
+	pop(r7);
+	pop(r6);
+	pop(r5);
+	pop(r4);
+	local tmp:4 = 0;
+	pop(tmp);
+	return [tmp];
+}
+
+:{"pc", r9-r4} = [sp++] is op0_15=0b0000000101011001 & sp & r9 & r4 {
+	pop(r9);
+	pop(r8);
+	pop(r7);
+	pop(r6);
+	pop(r5);
+	pop(r4);
+	local tmp:4 = 0;
+	pop(tmp);
+	return [tmp];
+}
+
+:{"pc", r10-r4} = [sp++] is op0_15=0b0000000101011010 & sp & r10 & r4 {
+	pop(r10);
+	pop(r9);
+	pop(r8);
+	pop(r7);
+	pop(r6);
+	pop(r5);
+	pop(r4);
+	local tmp:4 = 0;
+	pop(tmp);
+	return [tmp];
+}
+
+:{"pc", r11-r4} = [sp++] is op0_15=0b0000000101011011 & sp & r11 & r4 {
+	pop(r11);
+	pop(r10);
+	pop(r9);
+	pop(r8);
+	pop(r7);
+	pop(r6);
+	pop(r5);
+	pop(r4);
+	local tmp:4 = 0;
+	pop(tmp);
+	return [tmp];
+}
+
+:{"pc", r12-r4} = [sp++] is op0_15=0b0000000101011100 & sp & r12 & r4 {
+	pop(r12);
+	pop(r11);
+	pop(r10);
+	pop(r9);
+	pop(r8);
+	pop(r7);
+	pop(r6);
+	pop(r5);
+	pop(r4);
+	local tmp:4 = 0;
+	pop(tmp);
+	return [tmp];
+}
+
+:{"pc", r13-r4} = [sp++] is op0_15=0b0000000101011101 & sp & r13 & r4 {
+	pop(r13);
+	pop(r12);
+	pop(r11);
+	pop(r10);
+	pop(r9);
+	pop(r8);
+	pop(r7);
+	pop(r6);
+	pop(r5);
+	pop(r4);
+	local tmp:4 = 0;
+	pop(tmp);
+	return [tmp];
+}
+
+:{"pc", r14-r4} = [sp++] is op0_15=0b0000000101011110 & sp & r14 & r4 {
+	pop(r14);
+	pop(r13);
+	pop(r12);
+	pop(r11);
+	pop(r10);
+	pop(r9);
+	pop(r8);
+	pop(r7);
+	pop(r6);
+	pop(r5);
+	pop(r4);
+	local tmp:4 = 0;
+	pop(tmp);
+	return [tmp];
+}
+
+:{"pc", r15-r4} = [sp++] is op0_15=0b0000000101011111 & sp & r15 & r4 {
+	pop(r15);
+	pop(r14);
+	pop(r13);
+	pop(r12);
+	pop(r11);
+	pop(r10);
+	pop(r9);
+	pop(r8);
+	pop(r7);
+	pop(r6);
+	pop(r5);
+	pop(r4);
+	local tmp:4 = 0;
+	pop(tmp);
+	return [tmp];
+}
+
+# Push without rets
+
+:[--sp] = {r3-r0} is op0_15=0b0000000101100000 & sp & r3 & r0 {
+	push(r0);
+	push(r1);
+	push(r2);
+	push(r3);
+}
+
+:[--sp] = {r3-r1} is op0_15=0b0000000101100001 & sp & r3 & r1 {
+	push(r1);
+	push(r2);
+	push(r3);
+}
+
+:[--sp] = {r3, r2} is op0_15=0b0000000101100010 & sp & r3 & r2 {
+	push(r2);
+	push(r3);
+}
+
+:[--sp] = {r3} is op0_15=0b0000000101100011 & sp & r3 {
+	push(r3);
+}
+
+:[--sp] = {r4} is op0_15=0b0000000101100100 & sp & r4 {
+	push(r4);
+}
+
+:[--sp] = {r5, r4} is op0_15=0b0000000101100101 & sp & r5 & r4 {
+	push(r4);
+	push(r5);
+}
+
+:[--sp] = {r6-r4} is op0_15=0b0000000101100110 & sp & r6 & r4 {
+	push(r4);
+	push(r5);
+	push(r6);
+}
+
+:[--sp] = {r7-r4} is op0_15=0b0000000101100111 & sp & r7 & r4 {
+	push(r4);
+	push(r5);
+	push(r6);
+	push(r7);
+}
+
+:[--sp] = {r8-r4} is op0_15=0b0000000101101000 & sp & r8 & r4 {
+	push(r4);
+	push(r5);
+	push(r6);
+	push(r7);
+	push(r8);
+}
+
+:[--sp] = {r9-r4} is op0_15=0b0000000101101001 & sp & r9 & r4 {
+	push(r4);
+	push(r5);
+	push(r6);
+	push(r7);
+	push(r8);
+	push(r9);
+}
+
+:[--sp] = {r10-r4} is op0_15=0b0000000101101010 & sp & r10 & r4 {
+	push(r4);
+	push(r5);
+	push(r6);
+	push(r7);
+	push(r8);
+	push(r9);
+	push(r10);
+}
+
+:[--sp] = {r11-r4} is op0_15=0b0000000101101011 & sp & r11 & r4 {
+	push(r4);
+	push(r5);
+	push(r6);
+	push(r7);
+	push(r8);
+	push(r9);
+	push(r10);
+	push(r11);
+}
+
+:[--sp] = {r12-r4} is op0_15=0b0000000101101100 & sp & r12 & r4 {
+	push(r4);
+	push(r5);
+	push(r6);
+	push(r7);
+	push(r8);
+	push(r9);
+	push(r10);
+	push(r11);
+	push(r12);
+}
+
+:[--sp] = {r13-r4} is op0_15=0b0000000101101101 & sp & r13 & r4 {
+	push(r4);
+	push(r5);
+	push(r6);
+	push(r7);
+	push(r8);
+	push(r9);
+	push(r10);
+	push(r11);
+	push(r12);
+	push(r13);
+}
+
+:[--sp] = {r14-r4} is op0_15=0b0000000101101110 & sp & r14 & r4 {
+	push(r4);
+	push(r5);
+	push(r6);
+	push(r7);
+	push(r8);
+	push(r9);
+	push(r10);
+	push(r11);
+	push(r12);
+	push(r13);
+	push(r14);
+}
+
+:[--sp] = {r15-r4} is op0_15=0b0000000101101111 & sp & r15 & r4 {
+	push(r4);
+	push(r5);
+	push(r6);
+	push(r7);
+	push(r8);
+	push(r9);
+	push(r10);
+	push(r11);
+	push(r12);
+	push(r13);
+	push(r14);
+	push(r15);
+}
+
+# Push with rets
+
+:[--sp] = {rets, r3-r0} is op0_15=0b0000000101110000 & sp & rets & r3 & r0 {
+	push(rets);
+	push(r0);
+	push(r1);
+	push(r2);
+	push(r3);
+}
+
+:[--sp] = {rets, r3-r1} is op0_15=0b0000000101110001 & sp & rets & r3 & r1 {
+	push(rets);
+	push(r1);
+	push(r2);
+	push(r3);
+}
+
+:[--sp] = {rets, r3, r2} is op0_15=0b0000000101110010 & sp & rets & r3 & r2 {
+	push(rets);
+	push(r2);
+	push(r3);
+}
+
+:[--sp] = {rets, r3} is op0_15=0b0000000101110011 & sp & rets & r3 {
+	push(rets);
+	push(r3);
+}
+
+:[--sp] = {rets, r4} is op0_15=0b0000000101110100 & sp & rets & r4 {
+	push(rets);
+	push(r4);
+}
+
+:[--sp] = {rets, r5, r4} is op0_15=0b0000000101110101 & sp & rets & r5 & r4 {
+	push(rets);
+	push(r5);
+	push(r4);
+}
+
+:[--sp] = {rets, r6-r4} is op0_15=0b0000000101110110 & sp & rets & r6 & r4 {
+	push(rets);
+	push(r6);
+	push(r5);
+	push(r4);
+}
+
+:[--sp] = {rets, r7-r4} is op0_15=0b0000000101110111 & sp & rets & r7 & r4 {
+	push(rets);
+	push(r7);
+	push(r6);
+	push(r5);
+	push(r4);
+}
+
+:[--sp] = {rets, r8-r4} is op0_15=0b0000000101111000 & sp & rets & r8 & r4 {
+	push(rets);
+	push(r8);
+	push(r7);
+	push(r6);
+	push(r5);
+	push(r4);
+}
+
+:[--sp] = {rets, r9-r4} is op0_15=0b0000000101111001 & sp & rets & r9 & r4 {
+	push(rets);
+	push(r9);
+	push(r8);
+	push(r7);
+	push(r6);
+	push(r5);
+	push(r4);
+}
+
+:[--sp] = {rets, r10-r4} is op0_15=0b0000000101111010 & sp & rets & r10 & r4 {
+	push(rets);
+	push(r10);
+	push(r9);
+	push(r8);
+	push(r7);
+	push(r6);
+	push(r5);
+	push(r4);
+}
+
+:[--sp] = {rets, r11-r4} is op0_15=0b0000000101111011 & sp & rets & r11 & r4 {
+	push(rets);
+	push(r11);
+	push(r10);
+	push(r9);
+	push(r8);
+	push(r7);
+	push(r6);
+	push(r5);
+	push(r4);
+}
+
+:[--sp] = {rets, r12-r4} is op0_15=0b0000000101111100 & sp & rets & r12 & r4 {
+	push(rets);
+	push(r12);
+	push(r11);
+	push(r10);
+	push(r9);
+	push(r8);
+	push(r7);
+	push(r6);
+	push(r5);
+	push(r4);
+}
+
+:[--sp] = {rets, r13-r4} is op0_15=0b0000000101111101 & sp & rets & r13 & r4 {
+	push(rets);
+	push(r13);
+	push(r12);
+	push(r11);
+	push(r10);
+	push(r9);
+	push(r8);
+	push(r7);
+	push(r6);
+	push(r5);
+	push(r4);
+}
+
+:[--sp] = {rets, r14-r4} is op0_15=0b0000000101111110 & sp & rets & r14 & r4 {
+	push(rets);
+	push(r14);
+	push(r13);
+	push(r12);
+	push(r11);
+	push(r10);
+	push(r9);
+	push(r8);
+	push(r7);
+	push(r6);
+	push(r5);
+	push(r4);
+}
+
+:[--sp] = {rets, r15-r4} is op0_15=0b0000000101111111 & sp & rets & r15 & r4 {
+	push(rets);
+	push(r15);
+	push(r14);
+	push(r13);
+	push(r12);
+	push(r11);
+	push(r10);
+	push(r9);
+	push(r8);
+	push(r7);
+	push(r6);
+	push(r5);
+	push(r4);
+}
+
+srreglist:reti, srreglist is stage=0 & srreglist & op0=1 & reti [stage=1; save_reti=1;] { }
+srreglist:rete, srreglist is stage=1 & srreglist & op1=1 & rete [stage=2; save_rete=1;] { }
+srreglist:retx, srreglist is stage=2 & srreglist & op2=1 & retx [stage=3; save_retx=1;] { }
+srreglist:rets, srreglist is stage=3 & srreglist & op3=1 & rets [stage=4; save_rets=1;] { }
+srreglist:sr4, srreglist is stage=4 & srreglist & op4=1 & sr4 [stage=5; save_sr4=1;] { }
+srreglist:psr is stage=5 & op5=1 & psr [save_psr=1;] { }
+
+srreglist:srreglist is stage=0 & srreglist & op0=0 [stage=1;] { }
+srreglist:srreglist is stage=1 & srreglist & op1=0 [stage=2;] { }
+srreglist:srreglist is stage=2 & srreglist & op2=0 [stage=3;] { }
+srreglist:srreglist is stage=3 & srreglist & op3=0 [stage=4;] { }
+srreglist:srreglist is stage=4 & srreglist & op4=0 [stage=5;] { }
+srreglist:"" is stage=5 & op5=0 { }
+
+
+srreglist:"" is stage=6 { }
+
+# Pop special register list
+:"" { srreglist } = [sp++] is op6_15=0b0000000110 & srreglist & sp & save_reti & save_rete & save_retx & save_rets & save_sr4 & save_psr [stage=0;] {
+	if(save_psr:1 == 0) goto <nopsr>;
+		pop(psr);
+	<nopsr>
+	if(save_sr4:1 == 0) goto <nosr4>;
+		pop(sr4);
+	<nosr4>
+	if(save_rets:1 == 0) goto <norets>;
+		pop(rets);
+	<norets>
+	if(save_retx:1 == 0) goto <noretx>;
+		pop(retx);
+	<noretx>
+	if(save_rete:1 == 0) goto <norete>;
+		pop(rete);
+	<norete>
+	if(save_reti:1 == 0) goto <noreti>;
+		pop(reti);
+	<noreti>
+}
+
+# Push special register list
+
+:"" [--sp] = { srreglist } is op6_15=0b0000000111 & srreglist & sp & save_reti & save_rete & save_retx & save_rets & save_sr4 & save_psr [stage=0;] {
+	if(save_reti:1 == 0) goto <noreti>;
+		push(reti);
+	<noreti>
+	if(save_rete:1 == 0) goto <norete>;
+		push(rete);
+	<norete>
+	if(save_retx:1 == 0) goto <noretx>;
+		push(retx);
+	<noretx>
+	if(save_rets:1 == 0) goto <norets>;
+		push(rets);
+	<norets>
+	if(save_sr4:1 == 0) goto <nosr4>;
+		push(sr4);
+	<nosr4>
+	if(save_psr:1 == 0) goto <nopsr>;
+		push(psr);
+	<nopsr>
+}
+
+
+:"" rx0_2 = [sp + off] is op9_15=0b0000001 & imm4_8 & imm3=0 & rx0_2 & sp [ off=imm4_8 << 2; ] {
+	local ea:4 = sp + off;
+	rx0_2 = *[ram]:4 ea;
+}
+
+
+:"" [sp + off] = rx0_2 is op9_15=0b0000001 & imm4_8 & imm3=1 & rx0_2 & sp [ off=imm4_8 << 2; ] {
+	local ea:4 = sp + off;
+	*[ram]:4 ea = rx0_2;
+}
+
+:"" rx0_3 = ry6_8^".b0" is op9_15=0b0000010 & ry6_8 & imm4_5=0b00 & rx0_3 {
+	rx0_3 = zext(ry6_8:1);
+}
+
+:"" rx0_3 = ry6_8^".b0" is op9_15=0b0000010 & ry6_8 & imm4_5=0b01 & rx0_3 {
+	rx0_3 = sext(ry6_8:1);
+}
+
+
+:"" rx0_3 = ry6_8^".l" is op9_15=0b0000010 & ry6_8 & imm4_5=0b10 & rx0_3 {
+	rx0_3 = zext(ry6_8:2);
+}
+
+:"" rx0_3 = ry6_8^".l" is op9_15=0b0000010 & ry6_8 & imm4_5=0b11 & rx0_3 {
+	rx0_3 = sext(ry6_8:2);
+}
+
+:"" rx0_3 = imm is op9_15=0b0000011 & imm4_8 & rx0_3 [imm = (1<<5) | imm4_8;] {
+	rx0_3 = imm;
+}
+
+:"" rx0_3 = ry4_7 is op8_15=0b00001000 & ry4_7 & rx0_3 {
+	rx0_3 = ry4_7;
+}
+
+:"" rx0_3 += ry4_7 is op8_15=0b00001001 & ry4_7 & rx0_3 {
+	rx0_3 = rx0_3 + ry4_7;
+}
+
+:sp += imm is op9_15=0b0000101 & imm1_8s [imm = imm1_8s << 2;] {
+	sp = sp + imm;
+}
+
+:"" rx0_3 "<<=" ry6_8 is op9_15=0b0000110 & ry6_8 & imm4_5=0b00 & rx0_3 {
+	rx0_3 = rx0_3 << ry6_8;
+}
+
+:"" rx0_3 "<<<=" ry6_8 is op9_15=0b0000110 & ry6_8 & imm4_5=0b01 & rx0_3 {
+	rx0_3 = rx0_3 << ry6_8;
+}
+
+:"" rx0_3 ">>=" ry6_8 is op9_15=0b0000110 & ry6_8 & imm4_5=0b10 & rx0_3 {
+	rx0_3 = rx0_3 >> ry6_8;
+}
+
+:"" rx0_3 ">>>=" ry6_8 is op9_15=0b0000110 & ry6_8 & imm4_5=0b11 & rx0_3 {
+	rx0_3 = rx0_3 s>> ry6_8;
+}
+
+:"" rx0_2 = ry3_5 * rz6_8 is op9_15=0b0000111 & rz6_8 & ry3_5 & rx0_2 {
+	rx0_2 = ry3_5 * rz6_8;
+}
+
+:call dest is op11_15=0b00010 & imm0_10s [ dest = inst_next + (imm0_10s<<1); ] {
+	rets = inst_next;
+	local tmp:4 = dest;
+	call [tmp];
+}
+
+:goto dest is op11_15=0b00011 & imm0_10s [ dest = inst_next + (imm0_10s<<1); ] {
+	local tmp:4 = dest;
+	goto [tmp];
+}
+
+ifimm: dest is imm0_8s [ dest = inst_next + (imm0_8s << 1); ] { export *[const]:4 dest; }
+
+:if (rx9_11 "==" 0) "goto" ifimm is op12_15=0b0010 & rx9_11 & ifimm {
+	if(rx9_11 != 0) goto <end>;
+		goto [ifimm];
+	<end>
+}
+
+:if (rx9_11 "=!" 0) "goto" ifimm is op12_15=0b0011 & rx9_11 & ifimm {
+	if(rx9_11 == 0) goto <end>;
+		goto [ifimm];
+	<end>
+}
+
+:"" rx0_3 = [ry9_11 + imm] is op12_15=0b0100 & ry9_11 & imm4_8 & imm3=0 & rx0_3 [imm=imm4_8<<2;] {
+	local ea:4 = ry9_11 + imm;
+	rx0_3 = *[ram]:4 ea;
+}
+
+:"" [ry9_11 + imm] = rx0_3 is op12_15=0b0100 & ry9_11 & imm4_8 & imm3=1 & rx0_3 [imm=imm4_8<<2;] {
+	local ea:4 = ry9_11 + imm;
+	*[ram]:4 ea = rx0_3;
+}
+
+:"" rx0_3 = "h"[ry9_11 + imm] is op12_15=0b0101 & ry9_11 & imm4_8 & imm3=0 & rx0_3 [imm=imm4_8<<2;] {
+	local ea:4 = ry9_11 + imm;
+	rx0_3 = zext(*[ram]:2 ea);
+}
+
+:"" "h"[ry9_11 + imm] = rx0_3 is op12_15=0b0101 & ry9_11 & imm4_8 & imm3=1 & rx0_3 [imm=imm4_8<<2;] {
+	local ea:4 = ry9_11 + imm;
+	*[ram]:2 ea = rx0_3:2;
+}
+
+:"" rx0_3 = "b"[ry9_11 + imm] is op12_15=0b0110 & ry9_11 & imm4_8 & imm3=0 & rx0_3 [imm=imm4_8<<2;] {
+	local ea:4 = ry9_11 + imm;
+	rx0_3 = zext(*[ram]:1 ea);
+}
+
+:"" "b"[ry9_11 + imm] = rx0_3 is op12_15=0b0110 & ry9_11 & imm4_8 & imm3=1 & rx0_3 [imm=imm4_8<<2;] {
+	local ea:4 = ry9_11 + imm;
+	*[ram]:2 ea = rx0_3:1;
+}
+
+
+:"" rx0_3 = imm4_11s is op12_15=0b0111 & imm4_11s & rx0_3 {
+	rx0_3 = imm4_11s;
+}
+
+:"" rx0_3 += imm4_11s is op12_15=0b1000 & imm4_11s & rx0_3 {
+	rx0_3 = rx0_3 + imm4_11s;
+}
+
+:"" rx0_3 = ry9_11 + imm4_8 is op12_15=0b1001 & ry9_11 & imm4_8 & rx0_3 {
+	rx0_3 = ry9_11 + imm4_8;
+}
+
+:"" rx0_3 = sp + imm4_11s is op12_15=0b1010 & imm4_11s & rx0_3 & sp {
+	rx0_3 = sp + imm4_11s;
+}
+
+:"" rx0_3 = rz9_11 + ry6_8 is op12_15=0b1011 & rz9_11 & ry6_8 & imm4_5=0b00 & rx0_3 {
+	rx0_3 = rz9_11 + ry6_8;
+}
+
+:"" rx0_3 |= (1 "<<" imm7_11) is op12_15=0b1011 & imm7_11 & op4_6=0b001 & rx0_3 {
+	rx0_3 = rx0_3 | (1 << imm7_11);
+}
+
+:"" rx0_3 |= ry9_11 is op12_15=0b1011 & ry9_11 & imm4_8=0b00101 & rx0_3 {
+	rx0_3 = rx0_3 | ry9_11;
+}
+
+:"" rx0_3 ^= ry9_11 is op12_15=0b1011 & ry9_11 & imm4_8=0b01101 & rx0_3 {
+	rx0_3 = rx0_3 ^ ry9_11;
+}
+
+:"" rx0_3 &= ry9_11 is op12_15=0b1011 & ry9_11 & imm4_8=0b10101 & rx0_3 {
+	rx0_3 = rx0_3 & ry9_11;
+}
+
+:"" rx0_3 = "~"ry9_11 is op12_15=0b1011 & ry9_11 & imm4_8=0b11101 & rx0_3 {
+	rx0_3 = ~ry9_11;
+}
+
+:"" rx0_3 = rz9_11 - ry6_8 is op12_15=0b1011 & rz9_11 & ry6_8 & imm4_5=0b10 & rx0_3 {
+	rx0_3 = rz9_11 - ry6_8;
+}
+
+:"" rx0_3 ^= (1 "<<" imm7_11) is op12_15=0b1011 & imm7_11 & op4_6=0b011 & rx0_3 {
+	rx0_3 = rx0_3 ^ (1 << imm7_11);
+}
+
+:"" rx0_3 &= "~"(1 "<<" imm7_11) is op12_15=0b1011 & imm7_11 & op4_6=0b111 & rx0_3 {
+	rx0_3 = rx0_3 & (~(1 << imm7_11));
+}
+
+shiftimm6_10: imm6_10 is imm6_10 { export *[const]:4 imm6_10; }
+shiftimm6_10: 32 is imm6_10=0 { local tmp:4 = 32; export *[const]:4 tmp; }
+
+:"" rx0_2 = ry3_5 "<<" shiftimm6_10 is op11_15=0b11000 & shiftimm6_10 & ry3_5 & rx0_2 {
+	rx0_2 = ry3_5 << shiftimm6_10;
+}
+
+:"" rx0_2 = ry3_5 "<<<" shiftimm6_10 is op11_15=0b11001 & shiftimm6_10 & ry3_5 & rx0_2 {
+	rx0_2 = ry3_5 << shiftimm6_10;
+}
+
+:"" rx0_2 = ry3_5 ">>" shiftimm6_10 is op11_15=0b11010 & shiftimm6_10 & ry3_5 & rx0_2 {
+	rx0_2 = ry3_5 >> shiftimm6_10;
+	
+}
+
+:"" rx0_2 = ry3_5 ">>>" shiftimm6_10 is op11_15=0b11011 & shiftimm6_10 & ry3_5 & rx0_2 {
+	rx0_2 = ry3_5 s>> shiftimm6_10;	
+}
+
+
+# 32 bit instructions
+
+branch32imm: dest is imm0_11s [dest = inst_next + (imm0_11s<<1);] { export *[const]:4 dest; }
+gotoimm32: imm is imm0_15s [ imm = inst_next + (imm0_15s << 1); ] { export *[const]:4 imm; }
+
+
+:if ( rx0_3 "==" imm4_11s ) "goto" branch32imm is op12_15=0b1110 & imm4_11s & rx0_3 ; op12_15=0b0000 & branch32imm {
+	if (rx0_3 != imm4_11s) goto inst_next;
+	goto [branch32imm];
+}
+
+:if ( rx0_3 "!=" imm4_11s ) "goto" branch32imm is op12_15=0b1110 & imm4_11s & rx0_3 ; op12_15=0b0001 & branch32imm {
+	if (rx0_3 == imm4_11s) goto inst_next;
+	goto [branch32imm];
+}
+
+:if ( rx0_3 ">=" imm4_11 ) "goto" branch32imm is op12_15=0b1110 & imm4_11 & rx0_3 ; op12_15=0b0010 & branch32imm {
+	if (rx0_3 < imm4_11) goto inst_next;
+	goto [branch32imm];
+}
+
+:if ( rx0_3 "<" imm4_11 ) "goto" branch32imm is op12_15=0b1110 & imm4_11 & rx0_3 ; op12_15=0b0011 & branch32imm {
+	if (rx0_3 >= imm4_11) goto inst_next;
+	goto [branch32imm];
+}
+
+:if ( rx0_3 "mi" imm4_11 ) "goto" branch32imm is op12_15=0b1110 & imm4_11 & rx0_3 ; op12_15=0b0100 & branch32imm {
+    _stub();
+}
+
+:if ( rx0_3 "pl" imm4_11 ) "goto" branch32imm is op12_15=0b1110 & imm4_11 & rx0_3 ; op12_15=0b0101 & branch32imm {
+    _stub();
+}
+
+:if ( rx0_3 "vs" imm4_11 ) "goto" branch32imm is op12_15=0b1110 & imm4_11 & rx0_3 ; op12_15=0b0110 & branch32imm {
+    _stub();
+}
+
+:if ( rx0_3 "vc" imm4_11 ) "goto" branch32imm is op12_15=0b1110 & imm4_11 & rx0_3 ; op12_15=0b0111 & branch32imm {
+    _stub();
+}
+
+:if ( rx0_3 ">" imm4_11 ) "goto" branch32imm is op12_15=0b1110 & imm4_11 & rx0_3 ; op12_15=0b1000 & branch32imm {
+	if (rx0_3 <= imm4_11) goto inst_next;
+	goto [branch32imm];
+}
+
+:if ( rx0_3 "<=" imm4_11 ) "goto" branch32imm is op12_15=0b1110 & imm4_11 & rx0_3 ; op12_15=0b1001 & branch32imm {
+	if (rx0_3 > imm4_11) goto inst_next;
+	goto [branch32imm];
+}
+
+:if ( rx0_3 ">=" imm4_11s ) "goto" branch32imm is op12_15=0b1110 & imm4_11s & rx0_3 ; op12_15=0b1010 & branch32imm {
+	if (rx0_3 s< imm4_11s) goto inst_next;
+	goto [branch32imm];
+}
+
+:if ( rx0_3 "<" imm4_11s ) "goto" branch32imm is op12_15=0b1110 & imm4_11s & rx0_3 ; op12_15=0b1011 & branch32imm {
+	if (rx0_3 s>= imm4_11s) goto inst_next;
+	goto [branch32imm];
+}
+
+:if ( rx0_3 ">" imm4_11s ) "goto" branch32imm is op12_15=0b1110 & imm4_11s & rx0_3 ; op12_15=0b1100 & branch32imm {
+	if (rx0_3 s<= imm4_11s) goto inst_next;
+	goto [branch32imm];
+}
+
+:if ( rx0_3 "<=" imm4_11s ) "goto" branch32imm is op12_15=0b1110 & imm4_11s & rx0_3 ; op12_15=0b1101 & branch32imm {
+	if (rx0_3 s> imm4_11s) goto inst_next;
+	goto [branch32imm];
+}
+
+:if ( rx0_3 "al" imm4_11s ) "goto" branch32imm is op12_15=0b1110 & imm4_11s & rx0_3 ; op12_15=0b1110 & branch32imm {
+    goto [branch32imm];
+}
+
+:if ( rx0_3 "??" imm4_11s ) "goto" branch32imm is op12_15=0b1110 & imm4_11s & rx0_3 ; op12_15=0b1111 & branch32imm {
+    _stub();
+}
+
+:ifs ((rx0_3 "&" ry4_7) "==" 0) "goto" gotoimm32 is op8_15=0b11110000 & ry4_7 & rx0_3 ; gotoimm32 {
+    local tmp:4 = rx0_3 & ry4_7;
+    if(tmp != 0) goto inst_next;
+    goto [gotoimm32];
+}
+:ifs ((rx0_3 "&" ry4_7) "!=" 0) "goto" gotoimm32 is op8_15=0b11110001 & ry4_7 & rx0_3 ; gotoimm32 {
+    local tmp:4 = rx0_3 & ry4_7;
+    if(tmp == 0) goto inst_next;
+    goto [gotoimm32];
+}
+
+
+
+:ifs (rx0_3 "==" ry4_7) "goto" branch32imm is op8_15=0b11110010 & ry4_7 & rx0_3 ; op12_15=0b0000 & branch32imm {
+	if(rx0_3 != ry4_7) goto <end>;
+		goto [branch32imm];
+	<end>
+}
+
+:ifs (rx0_3 "!=" ry4_7) "goto" branch32imm is op8_15=0b11110010 & ry4_7 & rx0_3 ; op12_15=0b0001 & branch32imm {
+	if(rx0_3 == ry4_7) goto <end>;
+		goto [branch32imm];
+	<end>
+}
+
+:ifs (rx0_3 ">=" ry4_7) "goto" branch32imm is op8_15=0b11110010 & ry4_7 & rx0_3 ; op12_15=0b0010 & branch32imm {
+	if(rx0_3 s< ry4_7) goto <end>;
+		goto [branch32imm];
+	<end>
+}
+
+:ifs (rx0_3 "<" ry4_7) "goto" branch32imm is op8_15=0b11110010 & ry4_7 & rx0_3 ; op12_15=0b0011 & branch32imm {
+	local cmp:1 = (rx0_3 s< ry4_7) != 0;
+	if(cmp == 1) goto <end>;
+		goto [branch32imm];
+	<end>
+}
+
+#TODO: mi pl vs vc
+
+:ifs (rx0_3 ">" ry4_7) "goto" branch32imm is op8_15=0b11110010 & ry4_7 & rx0_3 ; op12_15=0b1000 & branch32imm {
+	local cmp:1 = (rx0_3 s> ry4_7) != 0;
+	if(cmp == 1) goto <end>;
+		goto [branch32imm];
+	<end>
+}
+
+:ifs (rx0_3 "<=" ry4_7) "goto" branch32imm is op8_15=0b11110010 & ry4_7 & rx0_3 ; op12_15=0b1001 & branch32imm {
+	if(rx0_3 s> ry4_7) goto <end>;
+		goto [branch32imm];
+	<end>
+}
+
+:ifs (rx0_3 ">=" ry4_7) "goto" branch32imm is op8_15=0b11110010 & ry4_7 & rx0_3 ; op12_15=0b1010 & branch32imm {
+	if(rx0_3 s< ry4_7) goto <end>;
+		goto [branch32imm];
+	<end>
+}
+
+:ifs (rx0_3 "<" ry4_7) "goto" branch32imm is op8_15=0b11110010 & ry4_7 & rx0_3 ; op12_15=0b1011 & branch32imm {
+	local cmp:1 = (rx0_3 s< ry4_7) != 0;
+	if(cmp == 1) goto <end>;
+		goto [branch32imm];
+	<end>
+}
+
+:ifs (rx0_3 ">" ry4_7) "goto" branch32imm is op8_15=0b11110010 & ry4_7 & rx0_3 ; op12_15=0b1100 & branch32imm {
+	local cmp:1 = (rx0_3 s> ry4_7) != 0;
+	if(cmp == 1) goto <end>;
+		goto [branch32imm];
+	<end>
+}
+
+:ifs (rx0_3 "<=" ry4_7) "goto" branch32imm is op8_15=0b11110010 & ry4_7 & rx0_3 ; op12_15=0b1101 & branch32imm {
+	if(rx0_3 s> ry4_7) goto <end>;
+		goto [branch32imm];
+	<end>
+}
+
+:ifs (rx0_3 "al" ry4_7) "goto" branch32imm is op8_15=0b11110010 & ry4_7 & rx0_3 ; op12_15=0b1111 & branch32imm {
+	goto [branch32imm];
+}
+
+
+rel0_11s: dest is imm0_11s [ dest = inst_next+(imm0_11s<<1); ] { export *[const]:4 dest; }
+
+
+:if ((rx12_15 & (1 "<<" imm0_4)) "==" 0 "goto" rel0_11s is op5_15=0b11110011000 & imm0_4 ; rx12_15 & rel0_11s {
+	local tmp:4 = rx12_15 & (1<<imm0_4);
+	if(tmp != 0) goto inst_next;
+	goto [rel0_11s];
+}
+
+:if ((rx12_15 & (1 "<<" imm0_4)) "!=" 0 "goto" rel0_11s is op5_15=0b11110011001 & imm0_4 ; rx12_15 & rel0_11s {
+	local tmp:4 = rx12_15 & (1<<imm0_4);
+	if(tmp == 0) goto inst_next;
+	goto [rel0_11s];
+}
+
+
+:ifeq "goto" gotoimm32 is op0_15=0b1111001101000000 ; gotoimm32 {
+	_stub();
+}
+
+:ifne "goto" gotoimm32 is op0_15=0b1111001101000001 ; gotoimm32 {
+	_stub();
+}
+
+:ifcs "goto" gotoimm32 is op0_15=0b1111001101000010 ; gotoimm32 {
+	_stub();
+}
+
+:ifcc "goto" gotoimm32 is op0_15=0b1111001101000011 ; gotoimm32 {
+	_stub();
+}
+
+:ifmi "goto" gotoimm32 is op0_15=0b1111001101000100 ; gotoimm32 {
+	_stub();
+}
+
+:ifpl "goto" gotoimm32 is op0_15=0b1111001101000101 ; gotoimm32 {
+	_stub();
+}
+
+:ifvs "goto" gotoimm32 is op0_15=0b1111001101000110 ; gotoimm32 {
+	_stub();
+}
+
+:ifvc "goto" gotoimm32 is op0_15=0b1111001101000111 ; gotoimm32 {
+	_stub();
+}
+
+:ifhi "goto" gotoimm32 is op0_15=0b1111001101001000 ; gotoimm32 {
+	_stub();
+}
+
+:ifls "goto" gotoimm32 is op0_15=0b1111001101001001 ; gotoimm32 {
+	_stub();
+}
+
+:ifge "goto" gotoimm32 is op0_15=0b1111001101001010 ; gotoimm32 {
+	_stub();
+}
+
+:iflt "goto" gotoimm32 is op0_15=0b1111001101001011 ; gotoimm32 {
+	_stub();
+}
+
+:ifgt "goto" gotoimm32 is op0_15=0b1111001101001100 ; gotoimm32 {
+	_stub();
+}
+
+:ifle "goto" gotoimm32 is op0_15=0b1111001101001101 ; gotoimm32 {
+	_stub();
+}
+
+:ifal "goto" gotoimm32 is op0_15=0b1111001101001110 ; gotoimm32 {
+	_stub();
+}
+
+:if(--rx0_3 "!=" 0) "goto" gotoimm32 is op4_15=0b111100110101 & rx0_3 ; gotoimm32 {
+	rx0_3 = rx0_3 - 1;
+	if(rx0_3 == 0) goto <end>;
+		goto [gotoimm32];
+	<end>
+}
+
+
+define pcodeop trigger;
+:trigger is op4_15=0b111100110110 ; imm0_15 {
+	trigger();
+}
+
+
+reglist:r15,reglist is stage=0 & reglist & op15=1 & r15 [stage=1; save_r15=1;] {}
+reglist:r14,reglist is stage=1 & reglist & op14=1 & r14 [stage=2; save_r14=1;] {}
+reglist:r13,reglist is stage=2 & reglist & op13=1 & r13 [stage=3; save_r13=1;] {}
+reglist:r12,reglist is stage=3 & reglist & op12=1 & r12 [stage=4; save_r12=1;] {}
+reglist:r11,reglist is stage=4 & reglist & op11=1 & r11 [stage=5; save_r11=1;] {}
+reglist:r10,reglist is stage=5 & reglist & op10=1 & r10 [stage=6; save_r10=1;] {}
+reglist:r9,reglist is stage=6 & reglist & op9=1 & r9 [stage=7; save_r9=1;] {}
+reglist:r8,reglist is stage=7 & reglist & op8=1 & r8 [stage=8; save_r8=1;] {}
+reglist:r7,reglist is stage=8 & reglist & op7=1 & r7 [stage=9; save_r7=1;] {}
+reglist:r6,reglist is stage=9 & reglist & op6=1 & r6 [stage=10; save_r6=1;] {}
+reglist:r5,reglist is stage=10 & reglist & op5=1 & r5 [stage=11; save_r5=1;] {}
+reglist:r4,reglist is stage=11 & reglist & op4=1 & r4 [stage=12; save_r4=1;] {}
+reglist:r3,reglist is stage=12 & reglist & op3=1 & r3 [stage=13; save_r3=1;] {}
+reglist:r2,reglist is stage=13 & reglist & op2=1 & r2 [stage=14; save_r2=1;] {}
+reglist:r1,reglist is stage=14 & reglist & op1=1 & r1 [stage=15; save_r1=1;] {}
+reglist:r0 is stage=15 & op0=1 & r0 [save_r0=1;] {}
+
+
+reglist:reglist is stage=0 & reglist & op15=0 [stage=1;] {}
+reglist:reglist is stage=1 & reglist & op14=0 [stage=2;] {}
+reglist:reglist is stage=2 & reglist & op13=0 [stage=3;] {}
+reglist:reglist is stage=3 & reglist & op12=0 [stage=4;] {}
+reglist:reglist is stage=4 & reglist & op11=0 [stage=5;] {}
+reglist:reglist is stage=5 & reglist & op10=0 [stage=6;] {}
+reglist:reglist is stage=6 & reglist & op9=0 [stage=7;] {}
+reglist:reglist is stage=7 & reglist & op8=0 [stage=8;] {}
+reglist:reglist is stage=8 & reglist & op7=0 [stage=9;] {}
+reglist:reglist is stage=9 & reglist & op6=0 [stage=10;] {}
+reglist:reglist is stage=10 & reglist & op5=0 [stage=11;] {}
+reglist:reglist is stage=11 & reglist & op4=0 [stage=12;] {}
+reglist:reglist is stage=12 & reglist & op3=0 [stage=13;] {}
+reglist:reglist is stage=13 & reglist & op2=0 [stage=14;] {}
+reglist:reglist is stage=14 & reglist & op1=0 [stage=15;] {}
+reglist:"" is stage=15 & op0=0 {}
+
+
+reglist:"" is stage=16 {}
+
+:"" { reglist } = [sp++] is op2_15=0b11110011011100 & imm0=0 ; reglist & sp & save_r0 & save_r1 & save_r2 & save_r3 & save_r4 & save_r5 & save_r6 & save_r7 & save_r8 & save_r9 & save_r10 & save_r11 & save_r12 & save_r13 & save_r14 & save_r15 [stage=0;] {
+	if(save_r15:1 == 0) goto <nosaver15>;
+		pop(r15);
+	<nosaver15>
+	if(save_r14:1 == 0) goto <nosaver14>;
+		pop(r14);
+	<nosaver14>
+	if(save_r13:1 == 0) goto <nosaver13>;
+		pop(r13);
+	<nosaver13>
+	if(save_r12:1 == 0) goto <nosaver12>;
+		pop(r12);
+	<nosaver12>
+	if(save_r11:1 == 0) goto <nosaver11>;
+		pop(r11);
+	<nosaver11>
+	if(save_r10:1 == 0) goto <nosaver10>;
+		pop(r10);
+	<nosaver10>
+	if(save_r9:1 == 0) goto <nosaver9>;
+		pop(r9);
+	<nosaver9>
+	if(save_r8:1 == 0) goto <nosaver8>;
+		pop(r9);
+	<nosaver8>
+	if(save_r7:1 == 0) goto <nosaver7>;
+		pop(r9);
+	<nosaver7>
+	if(save_r6:1 == 0) goto <nosaver6>;
+		pop(r9);
+	<nosaver6>
+	if(save_r5:1 == 0) goto <nosaver5>;
+		pop(r9);
+	<nosaver5>
+	if(save_r4:1 == 0) goto <nosaver4>;
+		pop(r9);
+	<nosaver4>
+	if(save_r3:1 == 0) goto <nosaver3>;
+		pop(r3);
+	<nosaver3>
+	if(save_r2:1 == 0) goto <nosaver2>;
+		pop(r2);
+	<nosaver2>
+	if(save_r1:1 == 0) goto <nosaver1>;
+		pop(r1);
+	<nosaver1>
+	if(save_r0:1 == 0) goto <nosaver0>;
+		pop(r0);
+	<nosaver0>
+}
+
+:"" { rets, reglist } = [sp++] is op2_15=0b11110011011100 & imm0=1 ; reglist & rets & sp & save_r0 & save_r1 & save_r2 & save_r3 & save_r4 & save_r5 & save_r6 & save_r7 & save_r8 & save_r9 & save_r10 & save_r11 & save_r12 & save_r13 & save_r14 & save_r15 [stage=0;] {
+	if(save_r15:1 == 0) goto <nosaver15>;
+		pop(r15);
+	<nosaver15>
+	if(save_r14:1 == 0) goto <nosaver14>;
+		pop(r14);
+	<nosaver14>
+	if(save_r13:1 == 0) goto <nosaver13>;
+		pop(r13);
+	<nosaver13>
+	if(save_r12:1 == 0) goto <nosaver12>;
+		pop(r12);
+	<nosaver12>
+	if(save_r11:1 == 0) goto <nosaver11>;
+		pop(r11);
+	<nosaver11>
+	if(save_r10:1 == 0) goto <nosaver10>;
+		pop(r10);
+	<nosaver10>
+	if(save_r9:1 == 0) goto <nosaver9>;
+		pop(r9);
+	<nosaver9>
+	if(save_r8:1 == 0) goto <nosaver8>;
+		pop(r9);
+	<nosaver8>
+	if(save_r7:1 == 0) goto <nosaver7>;
+		pop(r9);
+	<nosaver7>
+	if(save_r6:1 == 0) goto <nosaver6>;
+		pop(r9);
+	<nosaver6>
+	if(save_r5:1 == 0) goto <nosaver5>;
+		pop(r9);
+	<nosaver5>
+	if(save_r4:1 == 0) goto <nosaver4>;
+		pop(r9);
+	<nosaver4>
+	if(save_r3:1 == 0) goto <nosaver3>;
+		pop(r3);
+	<nosaver3>
+	if(save_r2:1 == 0) goto <nosaver2>;
+		pop(r2);
+	<nosaver2>
+	if(save_r1:1 == 0) goto <nosaver1>;
+		pop(r1);
+	<nosaver1>
+	if(save_r0:1 == 0) goto <nosaver0>;
+		pop(r0);
+	<nosaver0>
+	pop(rets);
+}
+
+:"" { pc, reglist } = [sp++] is op2_15=0b11110011011101 & imm0=1 ; reglist & pc & sp & save_r0 & save_r1 & save_r2 & save_r3 & save_r4 & save_r5 & save_r6 & save_r7 & save_r8 & save_r9 & save_r10 & save_r11 & save_r12 & save_r13 & save_r14 & save_r15 [stage=0;] {
+	if(save_r15:1 == 0) goto <nosaver15>;
+		pop(r15);
+	<nosaver15>
+	if(save_r14:1 == 0) goto <nosaver14>;
+		pop(r14);
+	<nosaver14>
+	if(save_r13:1 == 0) goto <nosaver13>;
+		pop(r13);
+	<nosaver13>
+	if(save_r12:1 == 0) goto <nosaver12>;
+		pop(r12);
+	<nosaver12>
+	if(save_r11:1 == 0) goto <nosaver11>;
+		pop(r11);
+	<nosaver11>
+	if(save_r10:1 == 0) goto <nosaver10>;
+		pop(r10);
+	<nosaver10>
+	if(save_r9:1 == 0) goto <nosaver9>;
+		pop(r9);
+	<nosaver9>
+	if(save_r8:1 == 0) goto <nosaver8>;
+		pop(r9);
+	<nosaver8>
+	if(save_r7:1 == 0) goto <nosaver7>;
+		pop(r9);
+	<nosaver7>
+	if(save_r6:1 == 0) goto <nosaver6>;
+		pop(r9);
+	<nosaver6>
+	if(save_r5:1 == 0) goto <nosaver5>;
+		pop(r9);
+	<nosaver5>
+	if(save_r4:1 == 0) goto <nosaver4>;
+		pop(r9);
+	<nosaver4>
+	if(save_r3:1 == 0) goto <nosaver3>;
+		pop(r3);
+	<nosaver3>
+	if(save_r2:1 == 0) goto <nosaver2>;
+		pop(r2);
+	<nosaver2>
+	if(save_r1:1 == 0) goto <nosaver1>;
+		pop(r1);
+	<nosaver1>
+	if(save_r0:1 == 0) goto <nosaver0>;
+		pop(r0);
+	<nosaver0>
+	pop(pc);
+}
+
+:"" [--sp] = { reglist } is op2_15=0b11110011011110 & imm0=0 ; reglist & sp & save_r0 & save_r1 & save_r2 & save_r3 & save_r4 & save_r5 & save_r6 & save_r7 & save_r8 & save_r9 & save_r10 & save_r11 & save_r12 & save_r13 & save_r14 & save_r15 [stage=0;] {
+	if(save_r0:1 == 0) goto <nopushr0>;
+		push(r0);
+	<nopushr0>
+	if(save_r1:1 == 0) goto <nopushr1>;
+		push(r1);
+	<nopushr1>
+	if(save_r2:1 == 0) goto <nopushr2>;
+		push(r2);
+	<nopushr2>
+	if(save_r3:1 == 0) goto <nopushr3>;
+		push(r3);
+	<nopushr3>
+	if(save_r4:1 == 0) goto <nopushr4>;
+		push(r4);
+	<nopushr4>
+	if(save_r5:1 == 0) goto <nopushr5>;
+		push(r5);
+	<nopushr5>
+	if(save_r6:1 == 0) goto <nopushr6>;
+		push(r6);
+	<nopushr6>
+	if(save_r7:1 == 0) goto <nopushr7>;
+		push(r7);
+	<nopushr7>
+	if(save_r8:1 == 0) goto <nopushr8>;
+		push(r8);
+	<nopushr8>
+	if(save_r9:1 == 0) goto <nopushr9>;
+		push(r9);
+	<nopushr9>
+	if(save_r10:1 == 0) goto <nopushr10>;
+		push(r10);
+	<nopushr10>
+	if(save_r11:1 == 0) goto <nopushr11>;
+		push(r11);
+	<nopushr11>
+	if(save_r12:1 == 0) goto <nopushr12>;
+		push(r12);
+	<nopushr12>
+	if(save_r13:1 == 0) goto <nopushr13>;
+		push(r13);
+	<nopushr13>
+	if(save_r14:1 == 0) goto <nopushr14>;
+		push(r14);
+	<nopushr14>
+	if(save_r15:1 == 0) goto <nopushr15>;
+		push(r15);
+	<nopushr15>
+}
+
+:"" [--sp] = { rets, reglist } is op2_15=0b11110011011110 & imm0=1 ; reglist & sp & rets & save_r0 & save_r1 & save_r2 & save_r3 & save_r4 & save_r5 & save_r6 & save_r7 & save_r8 & save_r9 & save_r10 & save_r11 & save_r12 & save_r13 & save_r14 & save_r15 [stage=0;] {
+	push(rets);
+	
+	if(save_r0:1 == 0) goto <nopushr0>;
+		push(r0);
+	<nopushr0>
+	if(save_r1:1 == 0) goto <nopushr1>;
+		push(r1);
+	<nopushr1>
+	if(save_r2:1 == 0) goto <nopushr2>;
+		push(r2);
+	<nopushr2>
+	if(save_r3:1 == 0) goto <nopushr3>;
+		push(r3);
+	<nopushr3>
+	if(save_r4:1 == 0) goto <nopushr4>;
+		push(r4);
+	<nopushr4>
+	if(save_r5:1 == 0) goto <nopushr5>;
+		push(r5);
+	<nopushr5>
+	if(save_r6:1 == 0) goto <nopushr6>;
+		push(r6);
+	<nopushr6>
+	if(save_r7:1 == 0) goto <nopushr7>;
+		push(r7);
+	<nopushr7>
+	if(save_r8:1 == 0) goto <nopushr8>;
+		push(r8);
+	<nopushr8>
+	if(save_r9:1 == 0) goto <nopushr9>;
+		push(r9);
+	<nopushr9>
+	if(save_r10:1 == 0) goto <nopushr10>;
+		push(r10);
+	<nopushr10>
+	if(save_r11:1 == 0) goto <nopushr11>;
+		push(r11);
+	<nopushr11>
+	if(save_r12:1 == 0) goto <nopushr12>;
+		push(r12);
+	<nopushr12>
+	if(save_r13:1 == 0) goto <nopushr13>;
+		push(r13);
+	<nopushr13>
+	if(save_r14:1 == 0) goto <nopushr14>;
+		push(r14);
+	<nopushr14>
+	if(save_r15:1 == 0) goto <nopushr15>;
+		push(r15);
+	<nopushr15>
+}
+
+#TODO: bits direction 15->0
+srreglist15:reti, srreglist15 is stage=0 & srreglist15 & op0=1 & reti [stage=1; save_reti=1;] { }
+srreglist15:rete, srreglist15 is stage=1 & srreglist15 & op1=1 & rete [stage=2; save_rete=1;] { }
+srreglist15:retx, srreglist15 is stage=2 & srreglist15 & op2=1 & retx [stage=3; save_retx=1;] { }
+srreglist15:rets, srreglist15 is stage=3 & srreglist15 & op3=1 & rets [stage=4; save_rets=1;] { }
+srreglist15:sr4, srreglist15 is stage=4 & srreglist15 & op4=1 & sr4 [stage=5; save_sr4=1;] { }
+srreglist15:psr, srreglist15 is stage=5 & srreglist15 & op5=1 & psr [stage=6; save_psr=1;] { }
+srreglist15:cnum, srreglist15 is stage=6 & srreglist15 & op6=1 & cnum [stage=7; save_cnum=1;] { }
+srreglist15:sr7, srreglist15 is stage=7 & srreglist15 & op7=1 & sr7 [stage=8; save_sr7=1;] { }
+srreglist15:sr8, srreglist15 is stage=8 & srreglist15 & op8=1 & sr8 [stage=9; save_sr8=1;] { }
+srreglist15:sr9, srreglist15 is stage=9 & srreglist15 & op9=1 & sr9 [stage=10; save_sr9=1;] { }
+srreglist15:sr10, srreglist15 is stage=10 & srreglist15 & op10=1 & sr10 [stage=11; save_sr10=1;] { }
+srreglist15:icfg, srreglist15 is stage=11 & srreglist15 & op11=1 & icfg [stage=12; save_icfg=1;] { }
+srreglist15:usp, srreglist15 is stage=12 & srreglist15 & op12=1 & usp [stage=13; save_usp=1;] { }
+srreglist15:ssp, srreglist15 is stage=13 & srreglist15 & op13=1 & ssp [stage=14; save_ssp=1;] { }
+srreglist15:sp, srreglist15 is stage=14 & srreglist15 & op14=1 & sp [stage=15; save_sp=1;] { }
+srreglist15:pc is stage=15 & op15=1 & pc [stage=15; save_pc=1;] { }
+
+
+
+srreglist15:srreglist15 is stage=0 & srreglist15 & op0=0 [stage=1;] { }
+srreglist15:srreglist15 is stage=1 & srreglist15 & op1=0 [stage=2;] { }
+srreglist15:srreglist15 is stage=2 & srreglist15 & op2=0 [stage=3;] { }
+srreglist15:srreglist15 is stage=3 & srreglist15 & op3=0 [stage=4;] { }
+srreglist15:srreglist15 is stage=4 & srreglist15 & op4=0 [stage=5;] { }
+srreglist15:srreglist15 is stage=5 & srreglist15 & op5=0 [stage=6;] { }
+srreglist15:srreglist15 is stage=6 & srreglist15 & op6=0 [stage=7;] { }
+srreglist15:srreglist15 is stage=7 & srreglist15 & op7=0 [stage=8;] { }
+srreglist15:srreglist15 is stage=8 & srreglist15 & op8=0 [stage=9;] { }
+srreglist15:srreglist15 is stage=9 & srreglist15 & op9=0 [stage=10;] { }
+srreglist15:srreglist15 is stage=10 & srreglist15 & op10=0 [stage=11;] { }
+srreglist15:srreglist15 is stage=11 & srreglist15 & op11=0 [stage=12;] { }
+srreglist15:srreglist15 is stage=12 & srreglist15 & op12=0 [stage=13;] { }
+srreglist15:srreglist15 is stage=13 & srreglist15 & op13=0 [stage=14;] { }
+srreglist15:srreglist15 is stage=14 & srreglist15 & op14=0 [stage=15;] { }
+srreglist15:"" is stage=15 & op15=0 { }
+
+
+srreglist15:"" is stage=15 { }
+
+
+
+:"" { srreglist15 } = [sp++] is op1_15=0b111100110111110 ; srreglist15 & sp & save_pc & save_sp & save_ssp & save_usp & save_icfg & save_sr10 & save_sr9 & save_sr8 & save_sr7 & save_cnum & save_psr & save_sr4 & save_rets & save_retx & save_rete & save_reti [stage=0;] {
+	
+	local next:4 = inst_next;
+	local new_sp:4 = sp;
+	
+	if(save_pc:1 == 0) goto <nopc>;
+		pop(pc);
+		next = pc;
+	<nopc>
+	if(save_sp:1 == 0) goto <nosp>;
+		pop(new_sp);
+	<nosp>
+	if(save_ssp:1 == 0) goto <nossp>;
+		pop(ssp);
+	<nossp>
+	if(save_usp:1 == 0) goto <nousp>;
+		pop(usp);
+	<nousp>
+	if(save_icfg:1 == 0) goto <noicfg>;
+		pop(icfg);
+	<noicfg>
+	if(save_sr10:1 == 0) goto <nosr10>;
+		pop(sr10);
+	<nosr10>
+	if(save_sr9:1 == 0) goto <nosr9>;
+		pop(sr9);
+	<nosr9>
+	if(save_sr8:1 == 0) goto <nosr8>;
+		pop(sr8);
+	<nosr8>
+	if(save_sr7:1 == 0) goto <nosr7>;
+		pop(sr7);
+	<nosr7>
+	if(save_cnum:1 == 0) goto <nocnum>;
+		pop(cnum);
+	<nocnum>
+	if(save_psr:1 == 0) goto <nopsr>;
+		pop(psr);
+	<nopsr>
+	if(save_sr4:1 == 0) goto <nosr4>;
+		pop(sr4);
+	<nosr4>
+	if(save_rets:1 == 0) goto <norets>;
+		pop(rets);
+	<norets>
+	if(save_retx:1 == 0) goto <noretx>;
+		pop(retx);
+	<noretx>
+	if(save_rete:1 == 0) goto <norete>;
+		pop(rete);
+	<norete>
+	if(save_reti:1 == 0) goto <noreti>;
+		pop(reti);
+	<noreti>
+	
+	if(save_sp:1 == 0) goto <nosp2>;
+		sp = new_sp;
+	<nosp2>
+	
+	goto [next];
+}
+
+:"" [--sp] = { srreglist15 } is op1_15=0b111100110111111 ; srreglist15 & sp & save_pc & save_sp & save_ssp & save_usp & save_icfg & save_sr10 & save_sr9 & save_sr8 & save_sr7 & save_cnum & save_psr & save_sr4 & save_rets & save_retx & save_rete & save_reti [stage=0;] {
+	if(save_reti:1 == 0) goto <noreti>;
+		push(reti);
+	<noreti>
+	if(save_rete:1 == 0) goto <norete>;
+		push(rete);
+	<norete>
+	if(save_retx:1 == 0) goto <noretx>;
+		push(retx);
+	<noretx>
+	if(save_rets:1 == 0) goto <norets>;
+		push(rets);
+	<norets>
+	if(save_sr4:1 == 0) goto <nosr4>;
+		push(sr4);
+	<nosr4>
+	if(save_psr:1 == 0) goto <nopsr>;
+		push(psr);
+	<nopsr>
+	if(save_cnum:1 == 0) goto <nocnum>;
+		push(cnum);
+	<nocnum>
+	if(save_sr7:1 == 0) goto <nosr7>;
+		push(sr7);
+	<nosr7>
+	if(save_sr8:1 == 0) goto <nosr8>;
+		push(sr8);
+	<nosr8>
+	if(save_sr9:1 == 0) goto <nosr9>;
+		push(sr9);
+	<nosr9>
+	if(save_sr10:1 == 0) goto <nosr10>;
+		push(sr10);
+	<nosr10>
+	if(save_icfg:1 == 0) goto <noicfg>;
+		push(icfg);
+	<noicfg>
+	if(save_usp:1 == 0) goto <nousp>;
+		push(usp);
+	<nousp>
+	if(save_ssp:1 == 0) goto <nossp>;
+		push(ssp);
+	<nossp>
+	if(save_sp:1 == 0) goto <nosp>;
+		push(sp);
+	<nosp>
+	if(save_pc:1 == 0) goto <nopc>;
+		local tmp:4 = inst_next;
+		push(tmp);
+	<nopc>
+}
+
+
+:call dest is op6_15=0b1111001110 & imm0_5s ; imm0_15 [ dest = inst_next + (((imm0_5s << 16) | imm0_15)<<1); ] {
+	rets = inst_next;
+	local tmp:4 = dest;
+	call [tmp];
+}
+
+:goto dest is op6_15=0b1111001111 & imm0_5s ; imm0_15 [ dest = inst_next + (((imm0_5s << 16) | imm0_15)<<1); ] {
+	local tmp:4 = dest;
+	goto [tmp];
+}
+
+
+weirdimm: imm is op7_11=0b00000 & imm0_6 [imm = (1<<11) | (imm0_6 << 4);] { export *[const]:4 imm; }
+weirdimm: imm is op7_11=0b00001 & imm0_6 [imm = (1<<12) | (imm0_6 << 5);] { export *[const]:4 imm; }
+weirdimm: imm is op7_11=0b00010 & imm0_6 [imm = (1<<13) | (imm0_6 << 6);] { export *[const]:4 imm; }
+weirdimm: imm is op7_11=0b00011 & imm0_6 [imm = (1<<14) | (imm0_6 << 7);] { export *[const]:4 imm; }
+weirdimm: imm is op7_11=0b00100 & imm0_6 [imm = (1<<16) | (imm0_6 << 9);] { export *[const]:4 imm; }
+weirdimm: imm is op7_11=0b00101 & imm0_6 [imm = (1<<17) | (imm0_6 << 10);] { export *[const]:4 imm; }
+weirdimm: imm is op7_11=0b00110 & imm0_6 [imm = (1<<18) | (imm0_6 << 11);] { export *[const]:4 imm; }
+weirdimm: imm is op7_11=0b00111 & imm0_6 [imm = (1<<19) | (imm0_6 << 12);] { export *[const]:4 imm; }
+weirdimm: imm is op7_11=0b01000 & imm0_6 [imm = (1<<20) | (imm0_6 << 13);] { export *[const]:4 imm; }
+weirdimm: imm is op7_11=0b01001 & imm0_6 [imm = (1<<21) | (imm0_6 << 14);] { export *[const]:4 imm; }
+weirdimm: imm is op7_11=0b01010 & imm0_6 [imm = (1<<22) | (imm0_6 << 15);] { export *[const]:4 imm; }
+weirdimm: imm is op7_11=0b01011 & imm0_6 [imm = (1<<24) | (imm0_6 << 17);] { export *[const]:4 imm; }
+weirdimm: imm is op7_11=0b01100 & imm0_6 [imm = (1<<25) | (imm0_6 << 18);] { export *[const]:4 imm; }
+weirdimm: imm is op7_11=0b01101 & imm0_6 [imm = (1<<26) | (imm0_6 << 19);] { export *[const]:4 imm; }
+weirdimm: imm is op7_11=0b01110 & imm0_6 [imm = (1<<27) | (imm0_6 << 20);] { export *[const]:4 imm; }
+weirdimm: imm is op7_11=0b01111 & imm0_6 [imm = (1<<28) | (imm0_6 << 21);] { export *[const]:4 imm; }
+weirdimm: imm is op7_11=0b10001 & imm0_6 [imm = (1<<29) | (imm0_6 << 22);] { export *[const]:4 imm; }
+
+weirdimm: imm0_7 is op8_11=0b1001 & imm0_7 { export *[const]:4 imm0_7; }
+weirdimm: imm is op8_11=0b1010 & imm0_7 [ imm = imm0_7 << 8; ] { export *[const]:4 imm; }
+weirdimm: imm is op8_11=0b1011 & imm0_7 [ imm = imm0_7 << 16; ] { export *[const]:4 imm; }
+weirdimm: imm is op8_11=0b1100 & imm0_7 [ imm = imm0_7 << 24; ] { export *[const]:4 imm; }
+
+weirdimm: imm is op8_11=0b1110 & imm0_7 [ imm = (imm0_7 << 24) | (imm0_7 << 8); ] { export *[const]:4 imm; }
+weirdimm: imm is op8_11=0b1111 & imm0_7 [ imm = (imm0_7 << 24) | (imm0_7 << 16) | (imm0_7 << 8) | imm0_7; ] { export *[const]:4 imm; }
+
+
+
+:"" [rx12_15 + off ] |= weirdimm is op6_15=0b1111010000 & imm0_5s ; rx12_15 & weirdimm [off = imm0_5s << 2; ] {
+	local ea:4 = rx12_15 + off;
+	local tmp:4 = *[ram]:4 ea;
+	tmp = tmp | weirdimm;
+	*[ram]:4 ea = tmp;
+}
+:"" [rx12_15 + off] ^= weirdimm is op6_15=0b1111010001 & imm0_5s ; rx12_15 & weirdimm [off = imm0_5s << 2; ] {
+	local ea:4 = rx12_15 + off;
+	local tmp:4 = *[ram]:4 ea;
+	tmp = tmp ^ weirdimm;
+	*[ram]:4 ea = tmp;
+}
+
+:"" [rx12_15 + off] &= "~"weirdimm is op6_15=0b1111010010 & imm0_5s ; rx12_15 & weirdimm [off = imm0_5s << 2; ] {
+	local ea:4 = rx12_15 + off;
+	local tmp:4 = *[ram]:4 ea;
+	tmp = tmp & ~weirdimm;
+	*[ram]:4 ea = tmp;
+}
+
+:"" [rx12_15 + off] = weirdimm is op6_15=0b1111010011 & imm0_5s ; rx12_15 & weirdimm [off = imm0_5s << 2; ]{
+	local ea:4 = rx12_15 + off;
+	*[ram]:4 ea = weirdimm;
+}
+
+
+# word
+:"" rx0_3 = [sp + imm0_15] is op7_15=0b111101010 & op4=0 & rx0_3 ; imm0_15 & sp {
+	local ea:4 = sp + imm0_15;
+	rx0_3 = *[ram]:4 ea;
+}
+
+:"" [sp + imm0_15] = rx0_3 is op7_15=0b111101010 & op4=1 & rx0_3 ; imm0_15 & sp {
+	local ea:4 = sp + imm0_15;
+	*[ram]:4 ea = rx0_3;
+}
+
+# half word
+
+:"" rx0_3 = "h"[sp + imm0_15] is op4_15=0b111101011000 & rx0_3 ; imm0_15 & sp {
+	local ea:4 = sp + imm0_15;
+	rx0_3 = zext(*[ram]:2 ea);
+}
+
+:"" "h"[sp + imm0_15] = rx0_3 is op4_15=0b111101011001 & rx0_3 ; imm0_15 & sp {
+	local ea:4 = sp + imm0_15;
+	*[ram]:2 ea = rx0_3:2;
+}
+
+:"" rx0_3 = "h"[sp + imm0_15] is op4_15=0b111101011010 & rx0_3 ; imm0_15 & sp {
+	local ea:4 = sp + imm0_15;
+	rx0_3 = sext(*[ram]:2 ea);
+}
+
+# byte
+
+:"" rx0_3 = "n"[sp + imm0_15] is op4_15=0b111101011100 & rx0_3 ; imm0_15 & sp {
+	local ea:4 = sp + imm0_15;
+	rx0_3 = zext(*[ram]:1 ea);
+}
+
+:"" "n"[sp + imm0_15] = rx0_3 is op4_15=0b111101011101 & rx0_3 ; imm0_15 & sp {
+	local ea:4 = sp + imm0_15;
+	*[ram]:2 ea = rx0_3:1;
+}
+
+:"" rx0_3 = "b"[sp + imm0_15] is op4_15=0b111101011110 & rx0_3 ; imm0_15 & sp {
+	local ea:4 = sp + imm0_15;
+	rx0_3 = sext(*[ram]:1 ea);
+}
+
+:"" rx0_3 = [ry12_15 + imm0_11s] is op6_15=0b1111011000 & op4=0 & rx0_3 ; ry12_15 & imm0_11s {
+	local ea:4 = ry12_15 + imm0_11s;
+	rx0_3 = *[ram]:4 ea;
+}
+
+:"" [ry12_15 + imm0_11s] = rx0_3 is op6_15=0b1111011000 & op4=1 & rx0_3 ; ry12_15 & imm0_11s {
+	local ea:4 = ry12_15 + imm0_11s;
+	*[ram]:4 ea = rx0_3;
+}
+
+
+:"" rx0_3 = [ry12_15 ++= imm0_11s] is op6_15=0b1111011001 & op4=0 & rx0_3 ; ry12_15 & imm0_11s {
+	rx0_3 = *[ram]:4 ry12_15;
+	ry12_15 = ry12_15 + imm0_11s;
+}
+:"" [ry12_15 ++= imm0_11s] = rx0_3 is op6_15=0b1111011001 & op4=1 & rx0_3 ; ry12_15 & imm0_11s {
+	*[ram]:4 ry12_15 = rx0_3;
+	ry12_15 = ry12_15 + imm0_11s;
+}
+
+
+:"" rx0_3 = [ry12_15 + rz8_11] is op4_15=0b111101101000 & rx0_3 ; ry12_15 & rz8_11 & imm0_7=0b00000000	{
+	local ea:4 = ry12_15 + rz8_11;
+	rx0_3 = *[ram]:4 ea;
+}
+
+:"" [ry12_15 + rz8_11] = rx0_3 is op4_15=0b111101101001 & rx0_3 ; ry12_15 & rz8_11 & imm0_7=0b00000000	{
+	local ea:4 = ry12_15 + rz8_11;
+	*[ram]:4 ea = rx0_3;
+}
+
+:"" rx0_3 = [ry12_15 + rz8_11"<<"2] is op4_15=0b111101101010 & rx0_3 ; ry12_15 & rz8_11 & imm0_7 {
+	local ea:4 = ry12_15 + rz8_11<<2;
+	rx0_3 = *[ram]:4 ea;
+}
+
+:"" [ry12_15 + rz8_11"<<"2] = rx0_3 is op4_15=0b111101101011 & rx0_3 ; ry12_15 & rz8_11 & imm0_7 {
+	local ea:4 = ry12_15 + rz8_11<<2;
+	*[ram]:4 ea = rx0_3;
+}
+
+
+:"" rx0_3 = [ry12_15 ++= rz8_11] is op6_15=0b1111011011 & op4=0 & rx0_3 ; ry12_15 & rz8_11 & imm0_7 {
+	rx0_3 = *[ram]:4 ry12_15;
+	ry12_15 = ry12_15 + rz8_11;
+}
+
+:"" [ry12_15 ++= rz8_11] = rx0_3 is op6_15=0b1111011011 & op4=1 & rx0_3 ; ry12_15 & rz8_11 & imm0_7 {
+	*[ram]:4 ry12_15 = rx0_3;
+	ry12_15 = ry12_15 + rz8_11;
+}
+
+# halfword mem offset imm
+:"" rx0_3 = "h"[ry12_15 + imm0_11s] is op7_15=0b111101110 & imm4_5=0b00 & rx0_3 ; ry12_15 & imm0_11s {
+	local ea:4 = ry12_15 + imm0_11s;
+	rx0_3 = zext(*[ram]:2 ea);
+}
+
+:"" "h"[ry12_15 + imm0_11s] = rx0_3 is op7_15=0b111101110 & imm4_5=0b01 & rx0_3 ; ry12_15 & imm0_11s {
+	local ea:4 = ry12_15 + imm0_11s;
+	*[ram]:2 ea = rx0_3:2;
+}
+
+:"" rx0_3 = "h"[ry12_15 + imm0_11s] is op7_15=0b111101110 & imm4_5=0b10 & rx0_3 ; ry12_15 & imm0_11s {
+	local ea:4 = ry12_15 + imm0_11s;
+	rx0_3 = sext(*[ram]:2 ea);
+}
+
+
+# halfword mem offset imm
+:"" rx0_3 = "h"[ry12_15 ++= imm0_11s] is op7_15=0b111101111 & imm4_5=0b00 & rx0_3 ; ry12_15 & imm0_11s {
+	rx0_3 = zext(*[ram]:2 ry12_15);
+	ry12_15 = ry12_15 + imm0_11s;
+}
+
+
+:"" "h"[ry12_15 ++= imm0_11s] = rx0_3 is op7_15=0b111101111 & imm4_5=0b01 & rx0_3 ; ry12_15 & imm0_11s {
+	*[ram]:2 ry12_15 = rx0_3:2;
+	ry12_15 = ry12_15 + imm0_11s;
+}
+
+:"" rx0_3 = "h"[ry12_15 ++= imm0_11s] is op7_15=0b111101111 & imm4_5=0b10 & rx0_3 ; ry12_15 & imm0_11s {
+	rx0_3 = sext(*[ram]:2 ry12_15);
+	ry12_15 = ry12_15 + imm0_11s;
+}
+
+# halfword mem offset reg
+:"" rx0_3 = "h"[ry12_15 + rz8_11] is op4_15=0b111110000000 & rx0_3 ; ry12_15 & rz8_11 & imm0_7 {
+	local ea:4 = ry12_15 + rz8_11;
+	rx0_3 = zext(*[ram]:2 ea);
+}
+
+:"" "h"[ry12_15 + rz8_11] = rx0_3 is op4_15=0b111110000001 & rx0_3 ; ry12_15 & rz8_11 & imm0_7 {
+	local ea:4 = ry12_15 + rz8_11;
+	*[ram]:2 ea = rx0_3:2;
+}
+
+:"" rx0_3 = "h"[ry12_15 + rz8_11] is op4_15=0b111110000010 & rx0_3 ; ry12_15 & rz8_11 & imm0_7 {
+	local ea:4 = ry12_15 + rz8_11;
+	rx0_3 = sext(*[ram]:2 ea);
+}
+
+
+# halfword mem offset shifted reg
+
+:"" rx0_3 = "h"[ry12_15 + rz8_11"<<"1] is op4_15=0b111110000100 & rx0_3 ; ry12_15 & rz8_11 & imm0_7=0 {
+	local ea:4 = ry12_15 + rz8_11<<1;
+	rx0_3 = zext(*[ram]:2 ea);
+}
+
+:"" "h"[ry12_15 + rz8_11"<<"1] = rx0_3 is op4_15=0b111110000101 & rx0_3 ; ry12_15 & rz8_11 & imm0_7=0 {
+	local ea:4 = ry12_15 + rz8_11<<1;
+	*[ram]:2 ea = rx0_3:2;
+}
+
+:"" rx0_3 = "h"[ry12_15 + rz8_11"<<"1] is op4_15=0b111110000110 & rx0_3 ; ry12_15 & rz8_11 & imm0_7=0 {
+	local ea:4 = ry12_15 + rz8_11<<1;
+	rx0_3 = sext(*[ram]:2 ea);
+}
+
+# halfword mem offset reg postinc
+
+:"" rx0_3 = "h"[ry12_15 ++= rz8_11] is op7_15=0b111110001 & imm4_5=0b00 & rx0_3 ; ry12_15 & rz8_11 & imm0_7 {
+	rx0_3 = zext(*[ram]:2 ry12_15);
+	ry12_15 = ry12_15 + rz8_11;
+}
+
+:"" "h"[ry12_15 ++= rz8_11] = rx0_3 is op7_15=0b111110001 & imm4_5=0b01 & rx0_3 ; ry12_15 & rz8_11 & imm0_7 {
+	*[ram]:2 ry12_15 = rx0_3:2;
+	ry12_15 = ry12_15 + rz8_11;
+}
+
+
+:"" rx0_3 = "h"[ry12_15 ++= rz8_11] is op7_15=0b111110001 & imm4_5=0b10 & rx0_3 ; ry12_15 & rz8_11 & imm0_7 {
+	rx0_3 = sext(*[ram]:2 ry12_15);
+	ry12_15 = ry12_15 + rz8_11;
+}
+
+# byte mem offset imm
+:"" rx0_3 = "b"[ry12_15 + imm0_11s] is op7_15=0b111110010 & imm4_5=0b00 & rx0_3 ; ry12_15 & imm0_11s {
+	local ea:4 = ry12_15 + imm0_11s;
+	rx0_3 = zext(*[ram]:1 ea);
+}
+
+:"" "b"[ry12_15 + imm0_11s] = rx0_3 is op7_15=0b111110010 & imm4_5=0b01 & rx0_3 ; ry12_15 & imm0_11s {
+	local ea:4 = ry12_15 + imm0_11s;
+	*[ram]:1 ea = rx0_3:1;
+}
+
+:"" rx0_3 = "b"[ry12_15 + imm0_11s] is op7_15=0b111110010 & imm4_5=0b10 & rx0_3 ; ry12_15 & imm0_11s {
+	local ea:4 = ry12_15 + imm0_11s;
+	rx0_3 = sext(*[ram]:1 ea);
+}
+
+# byte mem offset postinc imm
+
+:"" rx0_3 = "b"[ry12_15 ++= imm0_11s] is op7_15=0b111110011 & imm4_5=0b00 & rx0_3 ; ry12_15 & imm0_11s {
+	rx0_3 = zext(*[ram]:1 ry12_15);
+	ry12_15 = ry12_15 + imm0_11s;
+}
+
+
+:"" "b"[ry12_15 ++= imm0_11s] = rx0_3 is op7_15=0b111110011 & imm4_5=0b01 & rx0_3 ; ry12_15 & imm0_11s {
+	*[ram]:2 ry12_15 = rx0_3:1;
+	ry12_15 = ry12_15 + imm0_11s;
+}
+
+:"" rx0_3 = "b"[ry12_15 ++= imm0_11s] is op7_15=0b111110011 & imm4_5=0b10 & rx0_3 ; ry12_15 & imm0_11s {
+	rx0_3 = sext(*[ram]:1 ry12_15);
+	ry12_15 = ry12_15 + imm0_11s;
+}
+
+
+# byte mem offset reg
+:"" rx0_3 = "b"[ry12_15 + rz8_11] is op7_15=0b111110100 & imm4_5=0b00 & rx0_3 ; ry12_15 & rz8_11 & imm0_7=0 {
+	local ea:4 = ry12_15 + rz8_11;
+	rx0_3 = zext(*[ram]:1 ea);
+}
+
+:"" "b"[ry12_15 + rz8_11] = rx0_3 is op7_15=0b111110100 & imm4_5=0b01 & rx0_3 ; ry12_15 & rz8_11 & imm0_7=0 {
+	local ea:4 = ry12_15 + rz8_11;
+	*[ram]:1 ea = rx0_3;
+}
+
+:"" rx0_3 = "b"[ry12_15 + rz8_11] is op7_15=0b111110100 & imm4_5=0b10 & rx0_3 ; ry12_15 & rz8_11 & imm0_7=0 {
+	local ea:4 = ry12_15 + rz8_11;
+	rx0_3 = sext(*[ram]:1 ea);
+}
+
+:"" rx0_3 = "b"[ry12_15 ++= rz8_11] is op7_15=0b111110101 & imm4_5=0b00 & rx0_3 ; ry12_15 & rz8_11 & imm0_7=0 {
+	rx0_3 = sext(*[ram]:1 ry12_15);
+	ry12_15 = ry12_15 + rz8_11;
+}
+
+:"" "b"[ry12_15 ++= rz8_11] = rx0_3 is op7_15=0b111110101 & imm4_5=0b01 & rx0_3 ; ry12_15 & rz8_11 & imm0_7=0 {
+	*[ram]:1 ry12_15 = rx0_3:1;
+	ry12_15 = ry12_15 + rz8_11;
+}
+
+:"" rx0_3 = "b"[ry12_15 ++= rz8_11] is op7_15=0b111110101 & imm4_5=0b10 & rx0_3 ; ry12_15 & rz8_11 & imm0_7=0 {
+	rx0_3 = zext(*[ram]:1 ry12_15);
+	ry12_15 = ry12_15 + rz8_11;
+}
+
+:"" rx0_3 = imm0_15s is op5_15=0b11111011000 & rx0_3 ; imm0_15s {
+	rx0_3 = imm0_15s;
+}
+
+:"" rx12_15 = weirdimm is op3_15=0b1111101100100 ; rx12_15 & weirdimm {
+	rx12_15 = weirdimm;
+}
+
+:"" rx12_15 = sry8_11 is op3_15=0b1111101100101 & op0=0 ; rx12_15 & sry8_11 {
+	rx12_15 = sry8_11;
+}
+
+:"" sry8_11 = rx12_15 is op3_15=0b1111101100101 & op0=1 ; rx12_15 & sry8_11 {
+	sry8_11 = rx12_15;
+}
+
+define pcodeop rev8;
+
+:"" rx12_15 = "rev8"(ry8_11) is op4_15=0b111110110011 & op0_1=0b00 ; rx12_15 & ry8_11 {
+	rx12_15 = rev8(ry8_11:1);
+}
+
+define pcodeop rev16;
+
+:"" rx12_15 = "rev16"(ry8_11) is op4_15=0b111110110011 & op0_1=0b01 ; rx12_15 & ry8_11 {
+	rx12_15 = rev16(ry8_11:2);
+}
+
+define pcodeop revs;
+
+:"" rx12_15 = "revs"(ry8_11 ".l") is op4_15=0b111110110011 & op0_1=0b10 ; rx12_15 & ry8_11 {
+	rx12_15 = revs(ry8_11);
+}
+
+:"" rx0_3 = ry12_15 + weirdimm is op4_15=0b111110110100 & rx0_3 ; ry12_15 & weirdimm {
+	rx0_3 = ry12_15 + weirdimm;
+}
+
+:"" rx0_3 = ry12_15 - weirdimm is op4_15=0b111110110101 & rx0_3 ; ry12_15 & weirdimm {
+	rx0_3 = ry12_15 - weirdimm;
+}
+
+:"" rx0_3 = weirdimm - ry12_15 is op5_15=0b11111011011 & rx0_3 ; ry12_15 & weirdimm {
+	rx0_3 = weirdimm - ry12_15;
+}
+
+:"" rx12_15 = ry8_11 + rz4_7 is op4_15=0b111110111000 ; rx12_15 & ry8_11 & rz4_7 {
+	rx12_15 = ry8_11 + rz4_7;
+}
+
+:"" rx12_15 = ry8_11 - rz4_7 is op4_15=0b111110111001 ; rx12_15 & ry8_11 & rz4_7 {
+	rx12_15 = ry8_11 - rz4_7;
+}
+
+:"" rx12_15 = ry8_11 + rz4_7 + "C" is op4_15=0b111110111010 ; rx12_15 & ry8_11 & rz4_7 {
+	rx12_15 = ry8_11 + rz4_7 + zext(C);
+}
+
+:"" rx12_15 = ry8_11 + rz4_7 - !"C" is op4_15=0b111110111011 ; rx12_15 & ry8_11 & rz4_7 {
+	rx12_15 = ry8_11 + rz4_7 + zext(~C);
+}
+
+:"" sp += imm0_15s is op5_15=0b11111011110 ; imm0_15s & sp {
+	sp = sp + imm0_15s;
+}
+
+:"" rx0_3 = sp + imm0_15 is op5_15=0b11111011111 & rx0_3 ; imm0_15 & sp {
+	rx0_3 = sp + imm0_15;
+}
+
+:"" rx0_3 = ry4_7 + imm0_15s is op8_15=0b11111100 & ry4_7 & rx0_3 ; imm0_15s {
+	rx0_3 = ry4_7 + imm0_15s;
+}
+
+:"" rx0_3 = ry12_15 | weirdimm is op4_15=0b111111010000 & rx0_3 ; ry12_15 & weirdimm {
+	rx0_3 = ry12_15 | weirdimm;
+}
+
+:"" rx0_3 = ry12_15 ^ weirdimm is op4_15=0b111111010001 & rx0_3 ; ry12_15 & weirdimm {
+	rx0_3 = ry12_15 ^ weirdimm;
+}
+
+:"" rx0_3 = ry12_15 & weirdimm is op4_15=0b111111010010 & rx0_3 ; ry12_15 & weirdimm {
+	rx0_3 = ry12_15 & weirdimm;
+}
+:"" rx0_3 = ry12_15 & "~"weirdimm is op4_15=0b111111010011 & rx0_3 ; ry12_15 & weirdimm {
+	rx0_3 = ry12_15 & ~weirdimm;
+}
+
+#11111101010-----|XxxxYyyyZzzz----		r`Xxxx` = uextra(r`Yyyy`, p:r`Zzzz`[12:8], l:r`Zzzz`[4:0])
+:"" "uextra" is op5_15=0b11111101010 ; rx12_15 & ry8_11 & rz4_7 {
+	_stub();
+}
+
+#11111101011-----|XxxxYyyyZzzz----		r`Xxxx` = sextra(r`Yyyy`, p:r`Zzzz`[12:8], l:r`Zzzz`[4:0])
+:"" "sextra" is op5_15=0b11111101011 ; rx12_15 & ry8_11 & rz4_7 {
+	_stub();
+}
+
+:"" rx12_15 = "uextra"(ry8_11, "p:" imm4_7, "l:" imm0_4) is op5_15=0b11111101100 & imm0_4 ; rx12_15 & ry8_11 & imm4_7 {
+	local mask:4 = (1 << imm0_4) - 1;
+	rx12_15 = (ry8_11 >> imm4_7) & mask;
+}
+
+#11111101101Aaaaa|XxxxYyyyBbbbb---		r`Xxxx` = sextra(r`Yyyy`, p:`Bbbbb`, l:`Aaaaa`)
+:"" rx12_15 = "sextra"(ry8_11, "p:" imm4_7, "l:" imm0_4) is op5_15=0b11111101101 & imm0_4 ; rx12_15 & ry8_11 & imm4_7 {
+	_stub();
+}
+
+:"" rx12_15 = "insert"(ry8_11, "p:" imm4_7, "l:" imm0_4) is op5_15=0b11111101110 & imm0_4 ; rx12_15 & ry8_11 & imm4_7 {
+	local mask:4 = (1 << imm0_4) - 1;
+	rx12_15 = (rx12_15 & ~(mask << imm4_7)) | ((ry8_11 & mask) << imm4_7);
+}
+
+:"" rx12_15 = ry8_11 | rz4_7 is op0_15=0b1111110111100000 ; rx12_15 & ry8_11 & rz4_7 {
+	rx12_15 = ry8_11 | rz4_7;
+}
+
+:"" rx12_15 = ry8_11 ^ rz4_7 is op0_15=0b1111110111100001 ; rx12_15 & ry8_11 & rz4_7 {
+	rx12_15 = ry8_11 ^ rz4_7;
+}
+
+:"" rx12_15 = ry8_11 & rz4_7 is op0_15=0b1111110111100010 ; rx12_15 & ry8_11 & rz4_7 {
+	rx12_15 = ry8_11 & rz4_7;
+}
+
+:"" rx12_15 = ry8_11 & "~"rz4_7 is op0_15=0b1111110111100011 ; rx12_15 & ry8_11 & rz4_7 {
+	rx12_15 = ry8_11 & ~rz4_7;
+}
+
+:"" rx12_15 = ry8_11 ".b0" is op0_15=0b1111110111100100 ; rx12_15 & ry8_11 {
+	rx12_15 = zext(ry8_11:1);
+}
+
+:"" rx12_15 = ry8_11 ".b0" is op0_15=0b1111110111100101 ; rx12_15 & ry8_11 {
+	rx12_15 = sext(ry8_11:1);
+}
+
+:"" rx12_15 = ry8_11 ".l" is op0_15=0b1111110111100110 ; rx12_15 & ry8_11 {
+	rx12_15 = zext(ry8_11:2);
+}
+
+:"" rx12_15 = ry8_11 ".l" is op0_15=0b1111110111100111 ; rx12_15 & ry8_11 {
+	rx12_15 = sext(ry8_11:2);
+}
+
+define pcodeop clz;
+
+:"" rx12_15 = "clz"(ry8_11) is op0_15=0b1111110111101000 ; rx12_15 & ry8_11 {
+	clz(ry8_11);
+}
+
+define pcodeop cls;
+
+:"" rx12_15 = "cls"(ry8_11) is op0_15=0b1111110111101001 ; rx12_15 & ry8_11 {
+	cls(ry8_11);
+}
+
+define pcodeop zcmp;
+
+:"" rx12_15 = "zcmp"(ry8_11) is op0_15=0b1111110111101010 ; rx12_15 & ry8_11 {
+	zcmp(ry8_11);
+}
+
+#11111101111011--|XxxxYyyyZzzz----		r`Xxxx` <= insert(r`Yyyy`, p:r`Zzzz`[12:8], l:r`Zzzz`[4:0])
+
+:"" rx12_15 = ry8_11 "<<" imm3_10 is op0_15=0b1111110111110000 ; rx12_15 & ry8_11 & imm3_10 {
+	rx12_15 = ry8_11 << imm3_10;
+}
+
+:"" rx12_15 = ry8_11 "<<<" imm3_10 is op0_15=0b1111110111110001 ; rx12_15 & ry8_11 & imm3_10 {
+	rx12_15 = ry8_11 << imm3_10;
+}
+
+:"" rx12_15 = ry8_11 ">>" imm3_10 is op0_15=0b1111110111110010 ; rx12_15 & ry8_11 & imm3_10 {
+	rx12_15 = ry8_11 >> imm3_10;
+}
+
+:"" rx12_15 = ry8_11 ">>>" imm3_10 is op0_15=0b1111110111110011 ; rx12_15 & ry8_11 & imm3_10 {
+	rx12_15 = ry8_11 s>> imm3_10;
+}
+
+:"" rx12_15 = ry8_11 "<>" imm3_10 is op1_15=0b111111011111010 ; rx12_15 & ry8_11 & imm3_10 {
+	_stub();
+}
+
+:"" rx12_15 = ry8_11 "<c>" imm3_10 is op1_15=0b111111011111011 ; rx12_15 & ry8_11 & imm3_10 {
+	_stub();
+}
+
+:"" rx12_15 = ry8_11 "<<" rz4_7 is op0_15=0b1111110111111000 ; rx12_15 & ry8_11 & rz4_7 {
+	rx12_15 = ry8_11 << rz4_7;
+}
+
+:"" rx12_15 = ry8_11 "<<<" rz4_7 is op0_15=0b1111110111111001 ; rx12_15 & ry8_11 & rz4_7 {
+	rx12_15 = ry8_11 << rz4_7;
+}
+
+:"" rx12_15 = ry8_11 ">>" rz4_7 is op0_15=0b1111110111111010 ; rx12_15 & ry8_11 & rz4_7 {
+	rx12_15 = ry8_11 >> rz4_7;
+}
+
+:"" rx12_15 = ry8_11 ">>>" rz4_7 is op0_15=0b1111110111111011 ; rx12_15 & ry8_11 & rz4_7 {
+	rx12_15 = ry8_11 s>> rz4_7;
+}
+
+:"" rx12_15 = ry8_11 "<>" rz4_7 is op1_15=0b111111011111110 ; rx12_15 & ry8_11 & rz4_7 {
+	_stub();
+}
+
+:"" rx12_15 = ry8_11 "<c>" rz4_7 is op1_15=0b111111011111111 ; rx12_15 & ry8_11 & rz4_7 {
+	_stub();
+}
+
+:"" rx0_3 = ry12_15 * weirdimm is op6_15=0b1111111000 & rx0_3 ; ry12_15 & weirdimm {
+	rx0_3 = ry12_15 * weirdimm;
+}
+
+:"" rx12_15 = ry8_11 * rz4_7 is op6_15=0b1111111001 ; rx12_15 & ry8_11 & rz4_7 {
+	rx12_15 = ry8_11 * rz4_7;
+}
+
+
+:"" rx12_15 += ry8_11 * rz4_7 is op6_15=0b1111111010 & op4=0; rx12_15 & ry8_11 & rz4_7 {
+	rx12_15 = rx12_15 + ry8_11 * rz4_7;
+}
+
+:"" rx12_15 -= ry8_11 * rz4_7 is op6_15=0b1111111010 & op4=1; rx12_15 & ry8_11 & rz4_7 {
+	rx12_15 = rx12_15 - ry8_11 * rz4_7;
+}
+
+:"" rx12_15 = ry8_11 / rz4_7 is op4_15=0b111111101100 ; rx12_15 & ry8_11 & rz4_7 {
+	rx12_15 = ry8_11 / rz4_7;
+}
+
+:"" rx12_15 = ry8_11 % rz4_7 is op4_15=0b111111101101 ; rx12_15 & ry8_11 & rz4_7 {
+	rx12_15 = ry8_11 % rz4_7;
+}
+
+:"" rx12_15 = ry8_11 / rz4_7 is op4_15=0b111111101110 ; rx12_15 & ry8_11 & rz4_7 {
+	rx12_15 = ry8_11 s/ rz4_7;
+}
+
+:"" rx12_15 = ry8_11 % rz4_7 is op4_15=0b111111101111 ; rx12_15 & ry8_11 & rz4_7 {
+	rx12_15 = ry8_11 s% rz4_7;
+}
+
+
+# 48 bit instructions
+
+#11111111000-****|XxxxAaaaaaaaaaaa|Bbbbbbbbbbbbbbbb		if (r`Xxxx` == s`Aaaaaaaaaaaa`) goto s`Bbbbbbbbbbbbbbbb0`
+#	    .....             The immediates can be unsigned as well!!
+#         /\
+#         00
+#         01
+#         10
+#
+
+:ifs (rx12_15 "==" imm0_11) "goto" gotoimm32  is op5_15=0b11111111000 & op0_3=0b0000 ; rx12_15 & imm0_11 ; gotoimm32 {
+    if(rx12_15 != imm0_11) goto inst_next;
+	goto [gotoimm32];
+}
+
+:ifs (rx12_15 "!=" imm0_11) "goto" gotoimm32 is op5_15=0b11111111000 & op0_3=0b0001 ; rx12_15 & imm0_11 ; gotoimm32 {
+	if(rx12_15 == imm0_11) goto inst_next;
+	goto [gotoimm32];
+}
+
+:ifs (rx12_15 ">=" imm0_11) "goto" gotoimm32 is op5_15=0b11111111000 & op0_3=0b0010 ; rx12_15 & imm0_11 ; gotoimm32 {
+	if(rx12_15 < imm0_11) goto inst_next;
+	goto [gotoimm32];
+}
+
+:ifs (rx12_15 "<" imm0_11) "goto" gotoimm32 is op5_15=0b11111111000 & op0_3=0b0011 ; rx12_15 & imm0_11 ; gotoimm32 {
+	if(rx12_15 >= imm0_11) goto inst_next;
+	goto [gotoimm32];
+}
+
+:ifs (rx12_15 "pl" imm0_11) "goto" gotoimm32 is op5_15=0b11111111000 & op0_3=0b0101 ; rx12_15 & imm0_11 ; gotoimm32 {
+    # Positive, N==0
+    _stub();
+}
+
+:ifs (rx12_15 "mi" imm0_11) "goto" gotoimm32 is op5_15=0b11111111000 & op0_3=0b0100 ; rx12_15 & imm0_11 ; gotoimm32 {
+    # Negative, N == 1
+    _stub();
+}
+
+:ifs (rx12_15 "vs" imm0_11) "goto" gotoimm32 is op5_15=0b11111111000 & op0_3=0b0110 ; rx12_15 & imm0_11 ; gotoimm32 {
+    # Sign overflow, V == 1
+    _stub();
+}
+
+:ifs (rx12_15 "vc" imm0_11) "goto" gotoimm32 is op5_15=0b11111111000 & op0_3=0b0111 ; rx12_15 & imm0_11 ; gotoimm32 {
+    #No sign overflow, V == 0
+    _stub();
+}
+
+:ifs (rx12_15 ">" imm0_11) "goto" gotoimm32 is op5_15=0b11111111000 & op0_3=0b1000 ; rx12_15 & imm0_11 ; gotoimm32 {
+    if(rx12_15 <= imm0_11) goto inst_next;
+    goto [gotoimm32];
+}
+:ifs (rx12_15 "<" imm0_11s) "goto" gotoimm32 is op5_15=0b11111111000 & op0_3=0b1001 ; rx12_15 & imm0_11s ; gotoimm32 {
+    if(rx12_15 s>= imm0_11s) goto inst_next;
+    goto [gotoimm32];
+}
+:ifs (rx12_15 ">=" imm0_11s) "goto" gotoimm32 is op5_15=0b11111111000 & op0_3=0b1010 ; rx12_15 & imm0_11s ; gotoimm32 {
+    if(rx12_15 s< imm0_11s) goto inst_next;
+    goto [gotoimm32];
+}
+:ifs (rx12_15 "<" imm0_11s) "goto" gotoimm32 is op5_15=0b11111111000 & op0_3=0b1011 ; rx12_15 & imm0_11s ; gotoimm32 {
+    if(rx12_15 s>= imm0_11s) goto inst_next;
+    goto [gotoimm32];
+}
+:ifs (rx12_15 ">" imm0_11s) "goto" gotoimm32 is op5_15=0b11111111000 & op0_3=0b1100 ; rx12_15 & imm0_11s ; gotoimm32 {
+    if(rx12_15 s<= imm0_11s) goto inst_next;
+    goto [gotoimm32];
+}
+:ifs (rx12_15 "<=" imm0_11s) "goto" gotoimm32 is op5_15=0b11111111000 & op0_3=0b1101 ; rx12_15 & imm0_11s ; gotoimm32 {
+    if(rx12_15 s> imm0_11s) goto inst_next;
+    goto [gotoimm32];
+}
+:ifs (rx12_15 "al" imm0_11) "goto" gotoimm32 is op5_15=0b11111111000 & op0_3=0b1110 ; rx12_15 & imm0_11 ; gotoimm32 {
+    goto [gotoimm32];
+}
+:ifs (rx12_15 "??" imm0_11) "goto" gotoimm32 is op5_15=0b11111111000 & op0_3=0b1111 ; rx12_15 & imm0_11 ; gotoimm32 {
+    _stub();
+}
+
+
+
+# TODO: rest
+
+
+
+:if ((rx12_15 & weirdimm) "==" 0) "goto" gotoimm32 is op5_15=0b11111111011 & imm0=0 ; rx12_15 & weirdimm ; gotoimm32 {
+	local tmp:4 = rx12_15 & weirdimm;
+	if(tmp != 0) goto <end>;
+		goto [gotoimm32];
+	<end>
+}
+
+:if ((rx12_15 & weirdimm) "!=" 0 ) "goto" gotoimm32 is op5_15=0b11111111011 & op0=1 ; rx12_15 & weirdimm ; gotoimm32 {
+	local tmp:4 = rx12_15 & weirdimm;
+	if(tmp == 0) goto <end>;
+		goto [gotoimm32];
+	<end>
+}
+
+
+:call imm is op6_15=0b1111111110 ; imm0_15 ; imm0_15_dup [ imm = inst_next + (imm0_15 | (imm0_15_dup << 16)); ] {
+	rets = inst_next;
+	local tmp:4 = imm;
+	call [tmp];
+}
+
+:"" srx0_3 = imm is op5_15=0b11111111111 & srx0_3 ; imm0_15 ; imm0_15_dup [ imm = imm0_15 | (imm0_15_dup << 16); ] {
+	srx0_3 = imm;
+}
+
+:"" rx0_3 = imm is op5_15=0b11111111110 & rx0_3 ; imm0_15 ; imm0_15_dup [ imm = imm0_15 | (imm0_15_dup << 16); ] {
+	rx0_3 = imm;
+}
+

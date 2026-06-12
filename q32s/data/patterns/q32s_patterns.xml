@@ -1,0 +1,20 @@
+<patternlist>
+	<pattern>
+		<!-- [- -sp] = {rets, ..} -->
+		<data>00000001011.....</data>
+		<codeboundary/>
+		<possiblefuncstart/>
+	</pattern>
+	
+	<pattern>
+	 	
+		
+		<!-- {pc, ..} = [sp++] -->
+		<data>00000001010.....</data>
+
+		<codeboundary/>
+	</pattern>
+	
+	0b0000000100
+
+</patternlist>

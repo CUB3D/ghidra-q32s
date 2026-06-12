@@ -1,0 +1,5 @@
+<patternconstraints>
+    <language id="q32s:LE:32:*">
+        <patternfile>q32s_patterns.xml</patternfile>
+    </language>
+</patternconstraints>
