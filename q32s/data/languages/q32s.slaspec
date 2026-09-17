@@ -30,6 +30,7 @@ define token opbyte (16)
 	op0_4 = (0, 4)
 	op0_3 = (0, 3)
 	op4_6 = (4, 6)
+	op5_6 = (5, 6)
 	op7_11 = (7, 11)
 	op8_11 = (8, 11)
 	
@@ -237,6 +238,9 @@ macro rotl32(out, a, b) {
 	out = out1;
 }
 
+macro rotate_right(out, val, rot) {
+	out = (val >> rot) | (val << (32 - rot));
+}
 
 define pcodeop nop;
 
@@ -2159,13 +2163,13 @@ srreglist15:"" is stage=15 { }
 }
 
 
-:call dest is op6_15=0b1111001110 & imm0_5s ; imm0_15 [ dest = inst_next + (((imm0_5s << 16) | imm0_15)<<1); ] {
+:call dest is op6_15=0b1111001110 & imm0_5s; imm0_15 [ dest = (inst_next + (((imm0_5s << 16) | imm0_15) << 1)) & 0x1FFFFFF; ] {
 	rets = inst_next;
 	local tmp:4 = dest;
 	call [tmp];
 }
 
-:goto dest is op6_15=0b1111001111 & imm0_5s ; imm0_15 [ dest = inst_next + (((imm0_5s << 16) | imm0_15)<<1); ] {
+:goto dest is op6_15=0b1111001111 & imm0_5s ; imm0_15 [ dest = (inst_next + (((imm0_5s << 16) | imm0_15) << 1)) & 0x1FFFFFF; ] {
 	local tmp:4 = dest;
 	goto [tmp];
 }
@@ -2193,7 +2197,7 @@ weirdimm: imm0_7 is op8_11=0b1001 & imm0_7 { export *[const]:4 imm0_7; }
 weirdimm: imm is op8_11=0b1010 & imm0_7 [ imm = imm0_7 << 8; ] { export *[const]:4 imm; }
 weirdimm: imm is op8_11=0b1011 & imm0_7 [ imm = imm0_7 << 16; ] { export *[const]:4 imm; }
 weirdimm: imm is op8_11=0b1100 & imm0_7 [ imm = imm0_7 << 24; ] { export *[const]:4 imm; }
-
+weirdimm: imm is op8_11=0b1101 & imm0_7 [ imm = (imm0_7 << 16) | imm0_7; ] { export *[const]:4 imm; }
 weirdimm: imm is op8_11=0b1110 & imm0_7 [ imm = (imm0_7 << 24) | (imm0_7 << 8); ] { export *[const]:4 imm; }
 weirdimm: imm is op8_11=0b1111 & imm0_7 [ imm = (imm0_7 << 24) | (imm0_7 << 16) | (imm0_7 << 8) | imm0_7; ] { export *[const]:4 imm; }
 
@@ -2323,7 +2327,7 @@ weirdimm: imm is op8_11=0b1111 & imm0_7 [ imm = (imm0_7 << 24) | (imm0_7 << 16) 
 }
 
 # halfword mem offset imm
-:"" rx0_3 = "h"[ry12_15 + imm0_11s] is op7_15=0b111101110 & imm4_5=0b00 & rx0_3 ; ry12_15 & imm0_11s {
+:"" rx0_3 = "h"[ry12_15 + imm0_11s] "(u)" is op7_15=0b111101110 & imm4_5=0b00 & rx0_3 ; ry12_15 & imm0_11s {
 	local ea:4 = ry12_15 + imm0_11s;
 	rx0_3 = zext(*[ram]:2 ea);
 }
@@ -2333,14 +2337,14 @@ weirdimm: imm is op8_11=0b1111 & imm0_7 [ imm = (imm0_7 << 24) | (imm0_7 << 16) 
 	*[ram]:2 ea = rx0_3:2;
 }
 
-:"" rx0_3 = "h"[ry12_15 + imm0_11s] is op7_15=0b111101110 & imm4_5=0b10 & rx0_3 ; ry12_15 & imm0_11s {
+:"" rx0_3 = "h"[ry12_15 + imm0_11s] "(s)" is op7_15=0b111101110 & imm4_5=0b10 & rx0_3 ; ry12_15 & imm0_11s {
 	local ea:4 = ry12_15 + imm0_11s;
 	rx0_3 = sext(*[ram]:2 ea);
 }
 
 
 # halfword mem offset imm
-:"" rx0_3 = "h"[ry12_15 ++= imm0_11s] is op7_15=0b111101111 & imm4_5=0b00 & rx0_3 ; ry12_15 & imm0_11s {
+:"" rx0_3 = "h"[ry12_15 ++= imm0_11s] "(u)" is op7_15=0b111101111 & imm4_5=0b00 & rx0_3 ; ry12_15 & imm0_11s {
 	rx0_3 = zext(*[ram]:2 ry12_15);
 	ry12_15 = ry12_15 + imm0_11s;
 }
@@ -2351,13 +2355,13 @@ weirdimm: imm is op8_11=0b1111 & imm0_7 [ imm = (imm0_7 << 24) | (imm0_7 << 16) 
 	ry12_15 = ry12_15 + imm0_11s;
 }
 
-:"" rx0_3 = "h"[ry12_15 ++= imm0_11s] is op7_15=0b111101111 & imm4_5=0b10 & rx0_3 ; ry12_15 & imm0_11s {
+:"" rx0_3 = "h"[ry12_15 ++= imm0_11s] "(s)" is op7_15=0b111101111 & imm4_5=0b10 & rx0_3 ; ry12_15 & imm0_11s {
 	rx0_3 = sext(*[ram]:2 ry12_15);
 	ry12_15 = ry12_15 + imm0_11s;
 }
 
 # halfword mem offset reg
-:"" rx0_3 = "h"[ry12_15 + rz8_11] is op4_15=0b111110000000 & rx0_3 ; ry12_15 & rz8_11 & imm0_7 {
+:"" rx0_3 = "h"[ry12_15 + rz8_11] "(u)" is op4_15=0b111110000000 & rx0_3 ; ry12_15 & rz8_11 & imm0_7 {
 	local ea:4 = ry12_15 + rz8_11;
 	rx0_3 = zext(*[ram]:2 ea);
 }
@@ -2367,7 +2371,7 @@ weirdimm: imm is op8_11=0b1111 & imm0_7 [ imm = (imm0_7 << 24) | (imm0_7 << 16) 
 	*[ram]:2 ea = rx0_3:2;
 }
 
-:"" rx0_3 = "h"[ry12_15 + rz8_11] is op4_15=0b111110000010 & rx0_3 ; ry12_15 & rz8_11 & imm0_7 {
+:"" rx0_3 = "h"[ry12_15 + rz8_11] "(s)" is op4_15=0b111110000010 & rx0_3 ; ry12_15 & rz8_11 & imm0_7 {
 	local ea:4 = ry12_15 + rz8_11;
 	rx0_3 = sext(*[ram]:2 ea);
 }
@@ -2375,7 +2379,7 @@ weirdimm: imm is op8_11=0b1111 & imm0_7 [ imm = (imm0_7 << 24) | (imm0_7 << 16) 
 
 # halfword mem offset shifted reg
 
-:"" rx0_3 = "h"[ry12_15 + rz8_11"<<"1] is op4_15=0b111110000100 & rx0_3 ; ry12_15 & rz8_11 & imm0_7=0 {
+:"" rx0_3 = "h"[ry12_15 + rz8_11"<<"1] "(u)" is op4_15=0b111110000100 & rx0_3 ; ry12_15 & rz8_11 & imm0_7=0 {
 	local ea:4 = ry12_15 + rz8_11<<1;
 	rx0_3 = zext(*[ram]:2 ea);
 }
@@ -2385,14 +2389,14 @@ weirdimm: imm is op8_11=0b1111 & imm0_7 [ imm = (imm0_7 << 24) | (imm0_7 << 16) 
 	*[ram]:2 ea = rx0_3:2;
 }
 
-:"" rx0_3 = "h"[ry12_15 + rz8_11"<<"1] is op4_15=0b111110000110 & rx0_3 ; ry12_15 & rz8_11 & imm0_7=0 {
+:"" rx0_3 = "h"[ry12_15 + rz8_11"<<"1] "(s)" is op4_15=0b111110000110 & rx0_3 ; ry12_15 & rz8_11 & imm0_7=0 {
 	local ea:4 = ry12_15 + rz8_11<<1;
 	rx0_3 = sext(*[ram]:2 ea);
 }
 
 # halfword mem offset reg postinc
 
-:"" rx0_3 = "h"[ry12_15 ++= rz8_11] is op7_15=0b111110001 & imm4_5=0b00 & rx0_3 ; ry12_15 & rz8_11 & imm0_7 {
+:"" rx0_3 = "h"[ry12_15 ++= rz8_11] "(u)" is op7_15=0b111110001 & imm4_5=0b00 & rx0_3 ; ry12_15 & rz8_11 & imm0_7 {
 	rx0_3 = zext(*[ram]:2 ry12_15);
 	ry12_15 = ry12_15 + rz8_11;
 }
@@ -2403,13 +2407,13 @@ weirdimm: imm is op8_11=0b1111 & imm0_7 [ imm = (imm0_7 << 24) | (imm0_7 << 16) 
 }
 
 
-:"" rx0_3 = "h"[ry12_15 ++= rz8_11] is op7_15=0b111110001 & imm4_5=0b10 & rx0_3 ; ry12_15 & rz8_11 & imm0_7 {
+:"" rx0_3 = "h"[ry12_15 ++= rz8_11] "(s)" is op7_15=0b111110001 & imm4_5=0b10 & rx0_3 ; ry12_15 & rz8_11 & imm0_7 {
 	rx0_3 = sext(*[ram]:2 ry12_15);
 	ry12_15 = ry12_15 + rz8_11;
 }
 
 # byte mem offset imm
-:"" rx0_3 = "b"[ry12_15 + imm0_11s] is op7_15=0b111110010 & imm4_5=0b00 & rx0_3 ; ry12_15 & imm0_11s {
+:"" rx0_3 = "b"[ry12_15 + imm0_11s] "(u)" is op7_15=0b111110010 & imm4_5=0b00 & rx0_3 ; ry12_15 & imm0_11s {
 	local ea:4 = ry12_15 + imm0_11s;
 	rx0_3 = zext(*[ram]:1 ea);
 }
@@ -2419,14 +2423,14 @@ weirdimm: imm is op8_11=0b1111 & imm0_7 [ imm = (imm0_7 << 24) | (imm0_7 << 16) 
 	*[ram]:1 ea = rx0_3:1;
 }
 
-:"" rx0_3 = "b"[ry12_15 + imm0_11s] is op7_15=0b111110010 & imm4_5=0b10 & rx0_3 ; ry12_15 & imm0_11s {
+:"" rx0_3 = "b"[ry12_15 + imm0_11s] "(s)" is op7_15=0b111110010 & imm4_5=0b10 & rx0_3 ; ry12_15 & imm0_11s {
 	local ea:4 = ry12_15 + imm0_11s;
 	rx0_3 = sext(*[ram]:1 ea);
 }
 
 # byte mem offset postinc imm
 
-:"" rx0_3 = "b"[ry12_15 ++= imm0_11s] is op7_15=0b111110011 & imm4_5=0b00 & rx0_3 ; ry12_15 & imm0_11s {
+:"" rx0_3 = "b"[ry12_15 ++= imm0_11s] "(u)" is op7_15=0b111110011 & imm4_5=0b00 & rx0_3 ; ry12_15 & imm0_11s {
 	rx0_3 = zext(*[ram]:1 ry12_15);
 	ry12_15 = ry12_15 + imm0_11s;
 }
@@ -2437,14 +2441,14 @@ weirdimm: imm is op8_11=0b1111 & imm0_7 [ imm = (imm0_7 << 24) | (imm0_7 << 16) 
 	ry12_15 = ry12_15 + imm0_11s;
 }
 
-:"" rx0_3 = "b"[ry12_15 ++= imm0_11s] is op7_15=0b111110011 & imm4_5=0b10 & rx0_3 ; ry12_15 & imm0_11s {
+:"" rx0_3 = "b"[ry12_15 ++= imm0_11s] "(s)" is op7_15=0b111110011 & imm4_5=0b10 & rx0_3 ; ry12_15 & imm0_11s {
 	rx0_3 = sext(*[ram]:1 ry12_15);
 	ry12_15 = ry12_15 + imm0_11s;
 }
 
 
 # byte mem offset reg
-:"" rx0_3 = "b"[ry12_15 + rz8_11] is op7_15=0b111110100 & imm4_5=0b00 & rx0_3 ; ry12_15 & rz8_11 & imm0_7=0 {
+:"" rx0_3 = "b"[ry12_15 + rz8_11] "(u)" is op7_15=0b111110100 & imm4_5=0b00 & rx0_3 ; ry12_15 & rz8_11 & imm0_7=0 {
 	local ea:4 = ry12_15 + rz8_11;
 	rx0_3 = zext(*[ram]:1 ea);
 }
@@ -2454,12 +2458,12 @@ weirdimm: imm is op8_11=0b1111 & imm0_7 [ imm = (imm0_7 << 24) | (imm0_7 << 16) 
 	*[ram]:1 ea = rx0_3;
 }
 
-:"" rx0_3 = "b"[ry12_15 + rz8_11] is op7_15=0b111110100 & imm4_5=0b10 & rx0_3 ; ry12_15 & rz8_11 & imm0_7=0 {
+:"" rx0_3 = "b"[ry12_15 + rz8_11] "(s)" is op7_15=0b111110100 & imm4_5=0b10 & rx0_3 ; ry12_15 & rz8_11 & imm0_7=0 {
 	local ea:4 = ry12_15 + rz8_11;
 	rx0_3 = sext(*[ram]:1 ea);
 }
 
-:"" rx0_3 = "b"[ry12_15 ++= rz8_11] is op7_15=0b111110101 & imm4_5=0b00 & rx0_3 ; ry12_15 & rz8_11 & imm0_7=0 {
+:"" rx0_3 = "b"[ry12_15 ++= rz8_11] "(s)" is op7_15=0b111110101 & imm4_5=0b00 & rx0_3 ; ry12_15 & rz8_11 & imm0_7=0 {
 	rx0_3 = sext(*[ram]:1 ry12_15);
 	ry12_15 = ry12_15 + rz8_11;
 }
@@ -2469,7 +2473,7 @@ weirdimm: imm is op8_11=0b1111 & imm0_7 [ imm = (imm0_7 << 24) | (imm0_7 << 16) 
 	ry12_15 = ry12_15 + rz8_11;
 }
 
-:"" rx0_3 = "b"[ry12_15 ++= rz8_11] is op7_15=0b111110101 & imm4_5=0b10 & rx0_3 ; ry12_15 & rz8_11 & imm0_7=0 {
+:"" rx0_3 = "b"[ry12_15 ++= rz8_11] "(u)" is op7_15=0b111110101 & imm4_5=0b10 & rx0_3 ; ry12_15 & rz8_11 & imm0_7=0 {
 	rx0_3 = zext(*[ram]:1 ry12_15);
 	ry12_15 = ry12_15 + rz8_11;
 }
@@ -2490,22 +2494,37 @@ weirdimm: imm is op8_11=0b1111 & imm0_7 [ imm = (imm0_7 << 24) | (imm0_7 << 16) 
 	sry8_11 = rx12_15;
 }
 
-define pcodeop rev8;
-
+# This is a byte-reverse, tested on an actual AC632N
 :"" rx12_15 = "rev8"(ry8_11) is op4_15=0b111110110011 & op0_1=0b00 ; rx12_15 & ry8_11 {
-	rx12_15 = rev8(ry8_11:1);
+	local tmp: 4 = 0;
+	tmp = tmp | ((ry8_11 & 0xFF) << 24);
+	tmp = tmp | (((ry8_11 >> 8) & 0xFF) << 16);
+	tmp = tmp | (((ry8_11 >> 16) & 0xFF) << 8);
+	tmp = tmp | ((ry8_11 >> 24) & 0xFF);
+	rx12_15 = tmp;
 }
 
-define pcodeop rev16;
-
+# This swaps the high and low byte of each 16-bit word, tested on HW
 :"" rx12_15 = "rev16"(ry8_11) is op4_15=0b111110110011 & op0_1=0b01 ; rx12_15 & ry8_11 {
-	rx12_15 = rev16(ry8_11:2);
+	local lo:4 = ry8_11 & 0xFFFF;
+	local hi:4 = ry8_11 >> 16;
+	
+	local tmp:4 = 0;
+	tmp = tmp | (lo & 0xFF) << 8;
+	tmp = tmp | (lo >> 8) & 0xFF;
+	
+	tmp = tmp | (hi & 0xFF) << 24;
+	tmp = tmp | ((hi >> 8) & 0xFF) << 16;
+	rx12_15 = tmp;
 }
 
-define pcodeop revs;
-
+# This swaps the high and low byte of the low 16-bit word and clears the top, tested on Hw
 :"" rx12_15 = "revs"(ry8_11 ".l") is op4_15=0b111110110011 & op0_1=0b10 ; rx12_15 & ry8_11 {
-	rx12_15 = revs(ry8_11);
+	local lo:4 = ry8_11 & 0xFFFF;
+	local tmp:4 = 0;
+	tmp = tmp | (lo & 0xFF) << 8;
+	tmp = tmp | (lo >> 8) & 0xFF;
+	rx12_15 = tmp;
 }
 
 :"" rx0_3 = ry12_15 + weirdimm is op4_15=0b111110110100 & rx0_3 ; ry12_15 & weirdimm {
@@ -2620,72 +2639,105 @@ define pcodeop revs;
 	rx12_15 = sext(ry8_11:2);
 }
 
-define pcodeop clz;
-
 :"" rx12_15 = "clz"(ry8_11) is op0_15=0b1111110111101000 ; rx12_15 & ry8_11 {
-	clz(ry8_11);
+	rx12_15 = lzcount(ry8_11);
 }
 
-define pcodeop cls;
-
+# This is a count leading zero(S)?, output matches clz on HW
 :"" rx12_15 = "cls"(ry8_11) is op0_15=0b1111110111101001 ; rx12_15 & ry8_11 {
-	cls(ry8_11);
+	rx12_15 = lzcount(ry8_11);
 }
 
-define pcodeop zcmp;
-
+# Compares the input with 0, sets rx if not zero. Sets Z flag if ry == 0. Tested on HW
 :"" rx12_15 = "zcmp"(ry8_11) is op0_15=0b1111110111101010 ; rx12_15 & ry8_11 {
-	zcmp(ry8_11);
+	rx12_15 = ry8_11 != 0;
+	Z = ry8_11 == 0;
 }
 
 #11111101111011--|XxxxYyyyZzzz----		r`Xxxx` <= insert(r`Yyyy`, p:r`Zzzz`[12:8], l:r`Zzzz`[4:0])
 
+
+macro flags_nz(x) {
+	N = x s< 0;
+	Z = x == 0;
+}
+
+
+# Unsigned left shift
 :"" rx12_15 = ry8_11 "<<" imm3_10 is op0_15=0b1111110111110000 ; rx12_15 & ry8_11 & imm3_10 {
 	rx12_15 = ry8_11 << imm3_10;
+	flags_nz(rx12_15);
 }
 
+# Signed left shift
 :"" rx12_15 = ry8_11 "<<<" imm3_10 is op0_15=0b1111110111110001 ; rx12_15 & ry8_11 & imm3_10 {
 	rx12_15 = ry8_11 << imm3_10;
+	flags_nz(rx12_15);
 }
 
+# Unsigned right shift
 :"" rx12_15 = ry8_11 ">>" imm3_10 is op0_15=0b1111110111110010 ; rx12_15 & ry8_11 & imm3_10 {
 	rx12_15 = ry8_11 >> imm3_10;
+	flags_nz(rx12_15);
 }
 
+# Signed right shift
 :"" rx12_15 = ry8_11 ">>>" imm3_10 is op0_15=0b1111110111110011 ; rx12_15 & ry8_11 & imm3_10 {
 	rx12_15 = ry8_11 s>> imm3_10;
+	flags_nz(rx12_15);
 }
 
 :"" rx12_15 = ry8_11 "<>" imm3_10 is op1_15=0b111111011111010 ; rx12_15 & ry8_11 & imm3_10 {
-	_stub();
+	rotate_right(rx12_15, ry8_11, imm3_10);
+	flags_nz(rx12_15);
 }
 
+#TODO: shift of 0?
 :"" rx12_15 = ry8_11 "<c>" imm3_10 is op1_15=0b111111011111011 ; rx12_15 & ry8_11 & imm3_10 {
-	_stub();
+	local tmp:8 = (zext(C) << 32) | zext(ry8_11);
+	tmp = (tmp >> imm3_10) | (tmp << (33 - imm3_10));
+	C = (tmp & 0x100000000) != 0;
+	rx12_15 = tmp:4;
+	Z = rx12_15 == 0;
+	N = rx12_15 s< 0;
 }
 
 :"" rx12_15 = ry8_11 "<<" rz4_7 is op0_15=0b1111110111111000 ; rx12_15 & ry8_11 & rz4_7 {
 	rx12_15 = ry8_11 << rz4_7;
+	flags_nz(rx12_15);
 }
 
 :"" rx12_15 = ry8_11 "<<<" rz4_7 is op0_15=0b1111110111111001 ; rx12_15 & ry8_11 & rz4_7 {
 	rx12_15 = ry8_11 << rz4_7;
+	flags_nz(rx12_15);
 }
 
 :"" rx12_15 = ry8_11 ">>" rz4_7 is op0_15=0b1111110111111010 ; rx12_15 & ry8_11 & rz4_7 {
 	rx12_15 = ry8_11 >> rz4_7;
+	flags_nz(rx12_15);
 }
 
 :"" rx12_15 = ry8_11 ">>>" rz4_7 is op0_15=0b1111110111111011 ; rx12_15 & ry8_11 & rz4_7 {
 	rx12_15 = ry8_11 s>> rz4_7;
+	flags_nz(rx12_15);
 }
 
+# This is rotate right, tested on HW
+#  0xbacda55a      => 0b10111010110011011010010101011010
+#  0xbacda55a <> 1 => 0b01011101011001101101001010101101
+#  0xbacda55a <> 2 => 0b10101110101100110110100101010110
+#  0xbacda55a <> 3 => 0b01010111010110011011010010101011
 :"" rx12_15 = ry8_11 "<>" rz4_7 is op1_15=0b111111011111110 ; rx12_15 & ry8_11 & rz4_7 {
-	_stub();
+	rotate_right(rx12_15, ry8_11, rz4_7);
 }
 
+# This is a rotate right through carry, tested on HW
 :"" rx12_15 = ry8_11 "<c>" rz4_7 is op1_15=0b111111011111111 ; rx12_15 & ry8_11 & rz4_7 {
-	_stub();
+	local tmp:8 = (zext(C) << 32) | zext(ry8_11);
+	tmp = (tmp >> rz4_7) | (tmp << (33 - rz4_7));
+	C = (tmp & 0x100000000) != 0;
+	rx12_15 = tmp:4;
+	Z = rx12_15 == 0;
 }
 
 :"" rx0_3 = ry12_15 * weirdimm is op6_15=0b1111111000 & rx0_3 ; ry12_15 & weirdimm {
@@ -2732,74 +2784,153 @@ define pcodeop zcmp;
 #         10
 #
 
-:ifs (rx12_15 "==" imm0_11) "goto" gotoimm32  is op5_15=0b11111111000 & op0_3=0b0000 ; rx12_15 & imm0_11 ; gotoimm32 {
-    if(rx12_15 != imm0_11) goto inst_next;
+# op5_6 seems to set the type of the compare imm
+# 0b00 -> normal
+# 0b01 -> weirdimm
+# Not sure how this works for signed / unsigned yet
+
+# Weirdimm forms
+:ifs (rx12_15 "==" weirdimm) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b01 & op0_3=0b0000 ; rx12_15 & weirdimm ; gotoimm32 {
+    if(rx12_15 != weirdimm) goto inst_next;
 	goto [gotoimm32];
 }
 
-:ifs (rx12_15 "!=" imm0_11) "goto" gotoimm32 is op5_15=0b11111111000 & op0_3=0b0001 ; rx12_15 & imm0_11 ; gotoimm32 {
-	if(rx12_15 == imm0_11) goto inst_next;
+:ifs (rx12_15 "!=" weirdimm) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b01 & op0_3=0b0001 ; rx12_15 & weirdimm ; gotoimm32 {
+	if(rx12_15 == weirdimm) goto inst_next;
 	goto [gotoimm32];
 }
 
-:ifs (rx12_15 ">=" imm0_11) "goto" gotoimm32 is op5_15=0b11111111000 & op0_3=0b0010 ; rx12_15 & imm0_11 ; gotoimm32 {
-	if(rx12_15 < imm0_11) goto inst_next;
+:ifs (rx12_15 ">=" weirdimm) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b01 & op0_3=0b0010 ; rx12_15 & weirdimm ; gotoimm32 {
+	if(rx12_15 < weirdimm) goto inst_next;
 	goto [gotoimm32];
 }
 
-:ifs (rx12_15 "<" imm0_11) "goto" gotoimm32 is op5_15=0b11111111000 & op0_3=0b0011 ; rx12_15 & imm0_11 ; gotoimm32 {
-	if(rx12_15 >= imm0_11) goto inst_next;
+:ifs (rx12_15 "<" weirdimm) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b01 & op0_3=0b0011 ; rx12_15 & weirdimm ; gotoimm32 {
+	if(rx12_15 >= weirdimm) goto inst_next;
 	goto [gotoimm32];
 }
 
-:ifs (rx12_15 "pl" imm0_11) "goto" gotoimm32 is op5_15=0b11111111000 & op0_3=0b0101 ; rx12_15 & imm0_11 ; gotoimm32 {
+:ifs (rx12_15 "pl" weirdimm) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b01 & op0_3=0b0101 ; rx12_15 & weirdimm ; gotoimm32 {
     # Positive, N==0
     _stub();
 }
 
-:ifs (rx12_15 "mi" imm0_11) "goto" gotoimm32 is op5_15=0b11111111000 & op0_3=0b0100 ; rx12_15 & imm0_11 ; gotoimm32 {
+:ifs (rx12_15 "mi" weirdimm) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b01 & op0_3=0b0100 ; rx12_15 & weirdimm ; gotoimm32 {
     # Negative, N == 1
     _stub();
 }
 
-:ifs (rx12_15 "vs" imm0_11) "goto" gotoimm32 is op5_15=0b11111111000 & op0_3=0b0110 ; rx12_15 & imm0_11 ; gotoimm32 {
+:ifs (rx12_15 "vs" weirdimm) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b01 & op0_3=0b0110 ; rx12_15 & weirdimm ; gotoimm32 {
     # Sign overflow, V == 1
     _stub();
 }
 
-:ifs (rx12_15 "vc" imm0_11) "goto" gotoimm32 is op5_15=0b11111111000 & op0_3=0b0111 ; rx12_15 & imm0_11 ; gotoimm32 {
+:ifs (rx12_15 "vc" weirdimm) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b01 & op0_3=0b0111 ; rx12_15 & weirdimm ; gotoimm32 {
     #No sign overflow, V == 0
     _stub();
 }
 
-:ifs (rx12_15 ">" imm0_11) "goto" gotoimm32 is op5_15=0b11111111000 & op0_3=0b1000 ; rx12_15 & imm0_11 ; gotoimm32 {
+:ifs (rx12_15 ">" weirdimm) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b01 & op0_3=0b1000 ; rx12_15 & weirdimm ; gotoimm32 {
+    if(rx12_15 <= weirdimm) goto inst_next;
+    goto [gotoimm32];
+}
+:ifs (rx12_15 "<" weirdimm) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b01 & op0_3=0b1001 ; rx12_15 & weirdimm ; gotoimm32 {
+    if(rx12_15 s>= weirdimm) goto inst_next;
+    goto [gotoimm32];
+}
+:ifs (rx12_15 ">=" weirdimm) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b01 & op0_3=0b1010 ; rx12_15 & weirdimm ; gotoimm32 {
+    if(rx12_15 s< weirdimm) goto inst_next;
+    goto [gotoimm32];
+}
+:ifs (rx12_15 "<" weirdimm) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b01 & op0_3=0b1011 ; rx12_15 & weirdimm ; gotoimm32 {
+    if(rx12_15 s>= weirdimm) goto inst_next;
+    goto [gotoimm32];
+}
+:ifs (rx12_15 ">" weirdimm) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b01 & op0_3=0b1100 ; rx12_15 & weirdimm ; gotoimm32 {
+    if(rx12_15 s<= weirdimm) goto inst_next;
+    goto [gotoimm32];
+}
+:ifs (rx12_15 "<=" weirdimm) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b01 & op0_3=0b1101 ; rx12_15 & weirdimm ; gotoimm32 {
+    if(rx12_15 s> weirdimm) goto inst_next;
+    goto [gotoimm32];
+}
+:ifs (rx12_15 "al" weirdimm) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b01 & op0_3=0b1110 ; rx12_15 & weirdimm ; gotoimm32 {
+    goto [gotoimm32];
+}
+:ifs (rx12_15 "??" weirdimm) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b01 & op0_3=0b1111 ; rx12_15 & weirdimm ; gotoimm32 {
+    _stub();
+}
+
+# Normal forms
+
+:ifs (rx12_15 "==" imm0_11) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b00 & op0_3=0b0000 ; rx12_15 & imm0_11 ; gotoimm32 {
+    if(rx12_15 != imm0_11) goto inst_next;
+	goto [gotoimm32];
+}
+
+:ifs (rx12_15 "!=" imm0_11) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b00 & op0_3=0b0001 ; rx12_15 & imm0_11 ; gotoimm32 {
+	if(rx12_15 == imm0_11) goto inst_next;
+	goto [gotoimm32];
+}
+
+:ifs (rx12_15 ">=" imm0_11) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b00 & op0_3=0b0010 ; rx12_15 & imm0_11 ; gotoimm32 {
+	if(rx12_15 < imm0_11) goto inst_next;
+	goto [gotoimm32];
+}
+
+:ifs (rx12_15 "<" imm0_11) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b00 & op0_3=0b0011 ; rx12_15 & imm0_11 ; gotoimm32 {
+	if(rx12_15 >= imm0_11) goto inst_next;
+	goto [gotoimm32];
+}
+
+:ifs (rx12_15 "pl" imm0_11) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b00 & op0_3=0b0101 ; rx12_15 & imm0_11 ; gotoimm32 {
+    # Positive, N==0
+    _stub();
+}
+
+:ifs (rx12_15 "mi" imm0_11) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b00 & op0_3=0b0100 ; rx12_15 & imm0_11 ; gotoimm32 {
+    # Negative, N == 1
+    _stub();
+}
+
+:ifs (rx12_15 "vs" imm0_11) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b00 & op0_3=0b0110 ; rx12_15 & imm0_11 ; gotoimm32 {
+    # Sign overflow, V == 1
+    _stub();
+}
+
+:ifs (rx12_15 "vc" imm0_11) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b00 & op0_3=0b0111 ; rx12_15 & imm0_11 ; gotoimm32 {
+    #No sign overflow, V == 0
+    _stub();
+}
+
+:ifs (rx12_15 ">" imm0_11) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b00 & op0_3=0b1000 ; rx12_15 & imm0_11 ; gotoimm32 {
     if(rx12_15 <= imm0_11) goto inst_next;
     goto [gotoimm32];
 }
-:ifs (rx12_15 "<" imm0_11s) "goto" gotoimm32 is op5_15=0b11111111000 & op0_3=0b1001 ; rx12_15 & imm0_11s ; gotoimm32 {
+:ifs (rx12_15 "<" imm0_11s) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b00 & op0_3=0b1001 ; rx12_15 & imm0_11s ; gotoimm32 {
     if(rx12_15 s>= imm0_11s) goto inst_next;
     goto [gotoimm32];
 }
-:ifs (rx12_15 ">=" imm0_11s) "goto" gotoimm32 is op5_15=0b11111111000 & op0_3=0b1010 ; rx12_15 & imm0_11s ; gotoimm32 {
+:ifs (rx12_15 ">=" imm0_11s) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b00 & op0_3=0b1010 ; rx12_15 & imm0_11s ; gotoimm32 {
     if(rx12_15 s< imm0_11s) goto inst_next;
     goto [gotoimm32];
 }
-:ifs (rx12_15 "<" imm0_11s) "goto" gotoimm32 is op5_15=0b11111111000 & op0_3=0b1011 ; rx12_15 & imm0_11s ; gotoimm32 {
+:ifs (rx12_15 "<" imm0_11s) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b00 & op0_3=0b1011 ; rx12_15 & imm0_11s ; gotoimm32 {
     if(rx12_15 s>= imm0_11s) goto inst_next;
     goto [gotoimm32];
 }
-:ifs (rx12_15 ">" imm0_11s) "goto" gotoimm32 is op5_15=0b11111111000 & op0_3=0b1100 ; rx12_15 & imm0_11s ; gotoimm32 {
+:ifs (rx12_15 ">" imm0_11s) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b00 & op0_3=0b1100 ; rx12_15 & imm0_11s ; gotoimm32 {
     if(rx12_15 s<= imm0_11s) goto inst_next;
     goto [gotoimm32];
 }
-:ifs (rx12_15 "<=" imm0_11s) "goto" gotoimm32 is op5_15=0b11111111000 & op0_3=0b1101 ; rx12_15 & imm0_11s ; gotoimm32 {
+:ifs (rx12_15 "<=" imm0_11s) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b00 & op0_3=0b1101 ; rx12_15 & imm0_11s ; gotoimm32 {
     if(rx12_15 s> imm0_11s) goto inst_next;
     goto [gotoimm32];
 }
-:ifs (rx12_15 "al" imm0_11) "goto" gotoimm32 is op5_15=0b11111111000 & op0_3=0b1110 ; rx12_15 & imm0_11 ; gotoimm32 {
+:ifs (rx12_15 "al" imm0_11) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b00 & op0_3=0b1110 ; rx12_15 & imm0_11 ; gotoimm32 {
     goto [gotoimm32];
 }
-:ifs (rx12_15 "??" imm0_11) "goto" gotoimm32 is op5_15=0b11111111000 & op0_3=0b1111 ; rx12_15 & imm0_11 ; gotoimm32 {
+:ifs (rx12_15 "??" imm0_11) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b00 & op0_3=0b1111 ; rx12_15 & imm0_11 ; gotoimm32 {
     _stub();
 }
 
@@ -2824,7 +2955,7 @@ define pcodeop zcmp;
 }
 
 
-:call imm is op6_15=0b1111111110 ; imm0_15 ; imm0_15_dup [ imm = inst_next + (imm0_15 | (imm0_15_dup << 16)); ] {
+:call imm is op6_15=0b1111111110 ; imm0_15 ; imm0_15_dup [ imm = (inst_next + (imm0_15 | (imm0_15_dup << 16)) & 0x1FFFFFF); ] {
 	rets = inst_next;
 	local tmp:4 = imm;
 	call [tmp];

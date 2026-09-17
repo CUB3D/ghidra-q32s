@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<processor_spec>
+  <programcounter register="PC"/>
+  <default_symbols>
+	<symbol name="memmem" address="0x1127a4" entry="false"/>
+	<symbol name="memcpy" address="0x1127a8" entry="false"/>
+	<symbol name="memmove" address="0x1127ac" entry="false"/>
+	<symbol name="memcmp" address="0x1127b0" entry="false"/>
+	<symbol name="memset" address="0x1127b4" entry="false"/>
+	<symbol name="strcmp" address="0x1127b8" entry="false"/>
+	<symbol name="strcpy" address="0x1127bc" entry="false"/>
+	<symbol name="strlen" address="0x1127c0" entry="false"/>
+	<symbol name="strncmp" address="0x1127c4" entry="false"/>
+	<symbol name="strstr" address="0x1127c8" entry="false"/>
+	<symbol name="flush_dcache" address="0x1127cc" entry="false"/>
+	<symbol name="flushinv_dcache" address="0x1127d0" entry="false"/>
+	<symbol name="sfc_suspend" address="0x1127d4" entry="false"/>
+	<symbol name="sfc_resume" address="0x1127d8" entry="false"/>
+	<symbol name="chip_crc16" address="0x1127e0" entry="false"/>
+	<symbol name="nvram_set_boot_state" address="0x1127f0" entry="false"/>
+	<symbol name="_IRQ_MEM_ADDR" address="0x2bf00" entry="false"/>
+	<symbol name="_MASK_MEM_BEGIN" address="0x2bdc0" entry="false"/>
+	<symbol name="_MASK_MEM_SIZE" address="0x12c" entry="false"/>
+  </default_symbols>
+  
+  <default_memory_blocks>
+  	<memory_block name="ROM" start_address="0x00100000" length="0x00100000" initialized="false"/>
+  	<memory_block name="DATA1" start_address="0x00000000" length="0x00001000" initialized="false"/>
+  	<memory_block name="DATA2" start_address="0x0002b000" length="0x00001000" initialized="false"/>
+  </default_memory_blocks>
+</processor_spec>

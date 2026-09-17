@@ -4,13 +4,77 @@
    <language processor="q32s"
             endian="little"
             size="32"
-            variant="default"
+            variant="AW632N"
             version="1.0"
             slafile="q32s.sla"
-            processorspec="q32s.pspec"
-            id="q32s:LE:32:default">
+            processorspec="bd19.pspec"
+            id="q32s:LE:32:AW632N">
     <description>Jielie q32s</description>
     <compiler name="default" spec="q32s.cspec" id="default"/>
-  </language> 
+  </language>
+  
+     <language processor="q32s"
+            endian="little"
+            size="32"
+            variant="AW631N"
+            version="1.0"
+            slafile="q32s.sla"
+            processorspec="bd29.pspec"
+            id="q32s:LE:32:AW631N">
+    <description>Jielie q32s</description>
+    <compiler name="default" spec="q32s.cspec" id="default"/>
+  </language>
+  
+  <language processor="q32s"
+            endian="little"
+            size="32"
+            variant="AC635N"
+            version="1.0"
+            slafile="q32s.sla"
+            processorspec="br23.pspec"
+            id="q32s:LE:32:AC635N">
+    <description>Jielie q32s</description>
+    <compiler name="default" spec="q32s.cspec" id="default"/>
+  </language>
+
+<language processor="q32s"
+            endian="little"
+            size="32"
+            variant="AC636N"
+            version="1.0"
+            slafile="q32s.sla"
+            processorspec="br25.pspec"
+            id="q32s:LE:32:AC636N">
+    <description>Jielie q32s</description>
+    <compiler name="default" spec="q32s.cspec" id="default"/>
+  </language>
+  
+<language processor="q32s"
+            endian="little"
+            size="32"
+            variant="AC637N"
+            version="1.0"
+            slafile="q32s.sla"
+            processorspec="br30.pspec"
+            id="q32s:LE:32:AC637N">
+    <description>Jielie q32s</description>
+    <compiler name="default" spec="q32s.cspec" id="default"/>
+  </language>
+  
+  
+       <language processor="q32s"
+            endian="little"
+            size="32"
+            variant="AC638N"
+            version="1.0"
+            slafile="q32s.sla"
+            processorspec="br34.pspec"
+            id="q32s:LE:32:AC638N">
+    <description>Jielie q32s</description>
+    <compiler name="default" spec="q32s.cspec" id="default"/>
+  </language>
 
 </language_definitions>
+
+
+

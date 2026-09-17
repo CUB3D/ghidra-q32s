@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<processor_spec>
+  <programcounter register="PC"/>
+  <default_symbols>
+	<symbol name="_local_irq_enable" address="0x103e88" entry="false"/>
+	<symbol name="_local_irq_disable" address="0x103e8c" entry="false"/>
+	<symbol name="p33_buf" address="0x103e90" entry="false"/>
+	<symbol name="p33_xor_1byte" address="0x103e94" entry="false"/>
+	<symbol name="p33_and_1byte" address="0x103e98" entry="false"/>
+	<symbol name="p33_or_1byte" address="0x103e9c" entry="false"/>
+	<symbol name="p33_tx_1byte" address="0x103ea0" entry="false"/>
+	<symbol name="p33_rx_1byte" address="0x103ea4" entry="false"/>
+	<symbol name="P33_CON_SET" address="0x103ea8" entry="false"/>
+	<symbol name="memmem" address="0x103fa8" entry="false"/>
+	<symbol name="memcpy" address="0x103fac" entry="false"/>
+	<symbol name="memmove" address="0x103fb0" entry="false"/>
+	<symbol name="memcmp" address="0x103fb4" entry="false"/>
+	<symbol name="memset" address="0x103fb8" entry="false"/>
+	<symbol name="strcmp" address="0x103fbc" entry="false"/>
+	<symbol name="strcpy" address="0x103fc0" entry="false"/>
+	<symbol name="strlen" address="0x103fc4" entry="false"/>
+	<symbol name="strncmp" address="0x103fc8" entry="false"/>
+	<symbol name="strstr" address="0x103fcc" entry="false"/>
+	<symbol name="mask_init" address="0x103fd0" entry="false"/>
+	<symbol name="wdt_clr" address="0x103fd4" entry="false"/>
+	<symbol name="nvram_set_boot_state" address="0x103fd8" entry="false"/>
+	<symbol name="nvram_jumpaddr_set" address="0x103fdc" entry="false"/>
+	<symbol name="nvram_signature_set" address="0x103fe0" entry="false"/>
+	<symbol name="sfc_resume" address="0x103fe8" entry="false"/>
+	<symbol name="sfc_drop_cache" address="0x103fec" entry="false"/>
+	<symbol name="chip_crc16" address="0x103ff0" entry="false"/>
+	<symbol name="CrcDecode" address="0x103ff4" entry="false"/>
+	<symbol name="chip_reset" address="0x103ff8" entry="false"/>
+	<symbol name="_IRQ_MEM_ADDR" address="0xbf00" entry="false"/>
+	<symbol name="_MASK_MEM_BEGIN" address="0xbb00" entry="false"/>
+	<symbol name="_MASK_MEM_SIZE" address="0x3f0" entry="false"/>
+	<symbol name="boot_arg_list" address="0xbee4" entry="false"/>
+	<symbol name="the_debug_isr" address="0x100016" entry="false"/>
+	<symbol name="os_init" address="0x103eac" entry="false"/>
+	<symbol name="os_start" address="0x103eb0" entry="false"/>
+	<symbol name="os_get_curr_tcb_var" address="0x103eb4" entry="false"/>
+	<symbol name="os_task_create_rom" address="0x103eb8" entry="false"/>
+	<symbol name="os_current_task_rom" address="0x103ebc" entry="false"/>
+	<symbol name="os_time_dly" address="0x103ec0" entry="false"/>
+	<symbol name="os_time_get" address="0x103ec4" entry="false"/>
+	<symbol name="os_task_del_req" address="0x103ec8" entry="false"/>
+	<symbol name="os_task_del_res" address="0x103ecc" entry="false"/>
+	<symbol name="os_task_del" address="0x103ed0" entry="false"/>
+	<symbol name="__os_taskq_pend" address="0x103ed4" entry="false"/>
+	<symbol name="os_taskq_pend" address="0x103ed8" entry="false"/>
+	<symbol name="os_task_pend" address="0x103edc" entry="false"/>
+	<symbol name="__os_taskq_post" address="0x103ee0" entry="false"/>
+	<symbol name="os_taskq_post" address="0x103ee4" entry="false"/>
+	<symbol name="os_taskq_post_type" address="0x103ee8" entry="false"/>
+	<symbol name="os_taskq_flush" address="0x103eec" entry="false"/>
+	<symbol name="task_queue_post_event" address="0x103ef0" entry="false"/>
+	<symbol name="os_taskq_post_msg" address="0x103ef4" entry="false"/>
+	<symbol name="os_taskq_post_event" address="0x103ef8" entry="false"/>
+	<symbol name="os_taskq_accept" address="0x103efc" entry="false"/>
+	<symbol name="os_taskq_del" address="0x103f00" entry="false"/>
+	<symbol name="os_taskq_del_type" address="0x103f04" entry="false"/>
+	<symbol name="os_sem_create" address="0x103f08" entry="false"/>
+	<symbol name="os_sem_del" address="0x103f0c" entry="false"/>
+	<symbol name="os_sem_pend" address="0x103f10" entry="false"/>
+	<symbol name="os_sem_post" address="0x103f14" entry="false"/>
+	<symbol name="os_sem_set" address="0x103f18" entry="false"/>
+	<symbol name="os_sem_valid" address="0x103f1c" entry="false"/>
+	<symbol name="os_sem_query" address="0x103f20" entry="false"/>
+	<symbol name="os_mutex_create" address="0x103f24" entry="false"/>
+	<symbol name="os_mutex_del" address="0x103f28" entry="false"/>
+	<symbol name="os_mutex_pend" address="0x103f2c" entry="false"/>
+	<symbol name="os_mutex_post" address="0x103f30" entry="false"/>
+	<symbol name="os_mutex_valid" address="0x103f34" entry="false"/>
+	<symbol name="xTaskCreate" address="0x103f38" entry="false"/>
+	<symbol name="xTaskGetCurrentTaskHandle" address="0x103f3c" entry="false"/>
+	<symbol name="xTaskGetTickCount" address="0x103f40" entry="false"/>
+	<symbol name="xTaskGetHandle" address="0x103f44" entry="false"/>
+	<symbol name="vTaskDelete" address="0x103f48" entry="false"/>
+	<symbol name="xTaskGetApplicationTaskTag" address="0x103f4c" entry="false"/>
+	<symbol name="vTaskSetApplicationTaskTag" address="0x103f50" entry="false"/>
+	<symbol name="xQueueGenericCreateStatic" address="0x103f54" entry="false"/>
+	<symbol name="xQueueGenericReset" address="0x103f58" entry="false"/>
+	<symbol name="xQueueGenericSend" address="0x103f5c" entry="false"/>
+	<symbol name="xQueueGenericSendFromISR" address="0x103f60" entry="false"/>
+	<symbol name="xQueueGenericReceive" address="0x103f64" entry="false"/>
+	<symbol name="xQueueReceiveFromISR" address="0x103f68" entry="false"/>
+	<symbol name="vQueueDelete" address="0x103f6c" entry="false"/>
+	<symbol name="uxQueueMessagesWaiting" address="0x103f70" entry="false"/>
+	<symbol name="uxQueueMessagesWaitingFromISR" address="0x103f74" entry="false"/>
+	<symbol name="uxQueueSpacesAvailable" address="0x103f78" entry="false"/>
+	<symbol name="pcTaskGetName" address="0x103f7c" entry="false"/>
+	<symbol name="prvGetExpectedIdleTime" address="0x103f80" entry="false"/>
+	<symbol name="eTaskConfirmSleepModeStatus" address="0x103f84" entry="false"/>
+	<symbol name="vTaskStepTick" address="0x103f88" entry="false"/>
+	<symbol name="pxPortInitialiseStack" address="0x103f8c" entry="false"/>
+	<symbol name="xPortStartScheduler" address="0x103f90" entry="false"/>
+	<symbol name="vPortEndScheduler" address="0x103f94" entry="false"/>
+	<symbol name="vPortYield" address="0x103f98" entry="false"/>
+	<symbol name="vPortExitCritical" address="0x103f9c" entry="false"/>
+	<symbol name="OS_ClrPending" address="0x103fa0" entry="false"/>
+	<symbol name="vTickISR" address="0x103fa4" entry="false"/>
+  </default_symbols>
+  
+  <default_memory_blocks>
+  	<memory_block name="ROM" start_address="0x00100000" length="0x00100000" initialized="false"/>
+  	<memory_block name="DATA1" start_address="0x00000000" length="0x00001000" initialized="false"/>
+  	<memory_block name="DATA2" start_address="0x0000b000" length="0x00001000" initialized="false"/>
+  </default_memory_blocks>
+</processor_spec>
