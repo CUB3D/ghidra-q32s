@@ -70,6 +70,7 @@ define token opbyte (16)
 	
 	rz6_8 = (6, 8)
 	rz4_7 = (4, 7)
+	rz4_7_dup = (4, 7)
 	rz8_11 = (8, 11)
 	
 	
@@ -176,7 +177,7 @@ define context testctx
 ;
 
 
-attach variables [rx0_3 rx12_15 ry4_7 ry8_11 rz4_7 ry12_15 rz8_11] [
+attach variables [rx0_3 rx12_15 ry4_7 ry8_11 rz4_7 rz4_7_dup ry12_15 rz8_11] [
 	r0 r1 r2 r3
 	r4 r5 r6 r7
 	r8 r9 r10 r11
@@ -209,17 +210,15 @@ attach variables [sry8_11 srx0_3] [
 	pc
 ];
 
-#TODO: actually compute flags
+# Bits above 3 are RES0
 define bitrange V=psr[0,1] # Overflow
 				C=psr[1,1] # Carry
 				Z=psr[2,1] # Zero
 				N=psr[3,1] # Negative
 ;
 
-#TODO: _stub
 #TODO: flag setting?
 
-define pcodeop _stub;
 
 macro push(v) {
 	sp = sp - 4;
@@ -240,6 +239,11 @@ macro rotl32(out, a, b) {
 
 macro rotate_right(out, val, rot) {
 	out = (val >> rot) | (val << (32 - rot));
+}
+
+macro flags_nz(x) {
+	N = x s< 0;
+	Z = x == 0;
 }
 
 define pcodeop nop;
@@ -1481,21 +1485,13 @@ gotoimm32: imm is imm0_15s [ imm = inst_next + (imm0_15s << 1); ] { export *[con
 	goto [branch32imm];
 }
 
-:if ( rx0_3 "mi" imm4_11 ) "goto" branch32imm is op12_15=0b1110 & imm4_11 & rx0_3 ; op12_15=0b0100 & branch32imm {
-    _stub();
-}
+:if ( rx0_3 "mi" imm4_11 ) "goto" branch32imm is op12_15=0b1110 & imm4_11 & rx0_3 ; op12_15=0b0100 & branch32imm {}
 
-:if ( rx0_3 "pl" imm4_11 ) "goto" branch32imm is op12_15=0b1110 & imm4_11 & rx0_3 ; op12_15=0b0101 & branch32imm {
-    _stub();
-}
+:if ( rx0_3 "pl" imm4_11 ) "goto" branch32imm is op12_15=0b1110 & imm4_11 & rx0_3 ; op12_15=0b0101 & branch32imm {}
 
-:if ( rx0_3 "vs" imm4_11 ) "goto" branch32imm is op12_15=0b1110 & imm4_11 & rx0_3 ; op12_15=0b0110 & branch32imm {
-    _stub();
-}
+:if ( rx0_3 "vs" imm4_11 ) "goto" branch32imm is op12_15=0b1110 & imm4_11 & rx0_3 ; op12_15=0b0110 & branch32imm {}
 
-:if ( rx0_3 "vc" imm4_11 ) "goto" branch32imm is op12_15=0b1110 & imm4_11 & rx0_3 ; op12_15=0b0111 & branch32imm {
-    _stub();
-}
+:if ( rx0_3 "vc" imm4_11 ) "goto" branch32imm is op12_15=0b1110 & imm4_11 & rx0_3 ; op12_15=0b0111 & branch32imm {}
 
 :if ( rx0_3 ">" imm4_11 ) "goto" branch32imm is op12_15=0b1110 & imm4_11 & rx0_3 ; op12_15=0b1000 & branch32imm {
 	if (rx0_3 <= imm4_11) goto inst_next;
@@ -1531,9 +1527,7 @@ gotoimm32: imm is imm0_15s [ imm = inst_next + (imm0_15s << 1); ] { export *[con
     goto [branch32imm];
 }
 
-:if ( rx0_3 "??" imm4_11s ) "goto" branch32imm is op12_15=0b1110 & imm4_11s & rx0_3 ; op12_15=0b1111 & branch32imm {
-    _stub();
-}
+:if ( rx0_3 "??" imm4_11s ) "goto" branch32imm is op12_15=0b1110 & imm4_11s & rx0_3 ; op12_15=0b1111 & branch32imm {}
 
 :ifs ((rx0_3 "&" ry4_7) "==" 0) "goto" gotoimm32 is op8_15=0b11110000 & ry4_7 & rx0_3 ; gotoimm32 {
     local tmp:4 = rx0_3 & ry4_7;
@@ -1572,8 +1566,6 @@ gotoimm32: imm is imm0_15s [ imm = inst_next + (imm0_15s << 1); ] { export *[con
 		goto [branch32imm];
 	<end>
 }
-
-#TODO: mi pl vs vc
 
 :ifs (rx0_3 ">" ry4_7) "goto" branch32imm is op8_15=0b11110010 & ry4_7 & rx0_3 ; op12_15=0b1000 & branch32imm {
 	local cmp:1 = (rx0_3 s> ry4_7) != 0;
@@ -1636,63 +1628,81 @@ rel0_11s: dest is imm0_11s [ dest = inst_next+(imm0_11s<<1); ] { export *[const]
 
 
 :ifeq "goto" gotoimm32 is op0_15=0b1111001101000000 ; gotoimm32 {
-	_stub();
+	if(Z == 0) goto inst_next;
+	goto [gotoimm32];
 }
 
 :ifne "goto" gotoimm32 is op0_15=0b1111001101000001 ; gotoimm32 {
-	_stub();
+	if(Z != 0) goto inst_next;
+	goto [gotoimm32];
 }
 
 :ifcs "goto" gotoimm32 is op0_15=0b1111001101000010 ; gotoimm32 {
-	_stub();
+	if(C == 0) goto inst_next;
+	goto [gotoimm32];
 }
 
 :ifcc "goto" gotoimm32 is op0_15=0b1111001101000011 ; gotoimm32 {
-	_stub();
+	if(C != 0) goto inst_next;
+	goto [gotoimm32];
 }
 
 :ifmi "goto" gotoimm32 is op0_15=0b1111001101000100 ; gotoimm32 {
-	_stub();
+	if(N == 0) goto inst_next;
+	goto [gotoimm32];
 }
 
 :ifpl "goto" gotoimm32 is op0_15=0b1111001101000101 ; gotoimm32 {
-	_stub();
+	if(N != 0) goto inst_next;
+	goto [gotoimm32];
 }
 
 :ifvs "goto" gotoimm32 is op0_15=0b1111001101000110 ; gotoimm32 {
-	_stub();
+	if(V == 0) goto inst_next;
+	goto [gotoimm32];
 }
 
 :ifvc "goto" gotoimm32 is op0_15=0b1111001101000111 ; gotoimm32 {
-	_stub();
+	if(V != 0) goto inst_next;
+	goto [gotoimm32];
 }
 
 :ifhi "goto" gotoimm32 is op0_15=0b1111001101001000 ; gotoimm32 {
-	_stub();
+	local cond:1 = (C != 0) && (Z == 0);
+	if(cond == 0) goto inst_next;
+	goto [gotoimm32];
 }
 
 :ifls "goto" gotoimm32 is op0_15=0b1111001101001001 ; gotoimm32 {
-	_stub();
+	local cond:1 = (C == 0) || (Z != 0);
+	if(cond == 0) goto inst_next;
+	goto [gotoimm32];
 }
 
 :ifge "goto" gotoimm32 is op0_15=0b1111001101001010 ; gotoimm32 {
-	_stub();
+	if(N != V) goto inst_next;
+	goto [gotoimm32];
 }
 
 :iflt "goto" gotoimm32 is op0_15=0b1111001101001011 ; gotoimm32 {
-	_stub();
+	if(N == V) goto inst_next;
+	goto [gotoimm32];
 }
 
 :ifgt "goto" gotoimm32 is op0_15=0b1111001101001100 ; gotoimm32 {
-	_stub();
+	local cond:1 = (Z == 0) && (N == V);
+	if(cond == 0) goto inst_next;
+	goto [gotoimm32];
 }
 
 :ifle "goto" gotoimm32 is op0_15=0b1111001101001101 ; gotoimm32 {
-	_stub();
+	local cond:1 = (Z != 0) || (N != V);
+	if(cond == 0) goto inst_next;
+	goto [gotoimm32];
 }
 
 :ifal "goto" gotoimm32 is op0_15=0b1111001101001110 ; gotoimm32 {
-	_stub();
+	goto [gotoimm32];
 }
 
 :if(--rx0_3 "!=" 0) "goto" gotoimm32 is op4_15=0b111100110101 & rx0_3 ; gotoimm32 {
@@ -1702,12 +1712,10 @@ rel0_11s: dest is imm0_11s [ dest = inst_next+(imm0_11s<<1); ] { export *[const]
 	<end>
 }
 
-
 define pcodeop trigger;
 :trigger is op4_15=0b111100110110 ; imm0_15 {
 	trigger();
 }
-
 
 reglist:r15,reglist is stage=0 & reglist & op15=1 & r15 [stage=1; save_r15=1;] {}
 reglist:r14,reglist is stage=1 & reglist & op14=1 & r14 [stage=2; save_r14=1;] {}
@@ -2006,47 +2014,41 @@ reglist:"" is stage=16 {}
 	<nopushr15>
 }
 
-#TODO: bits direction 15->0
-srreglist15:reti, srreglist15 is stage=0 & srreglist15 & op0=1 & reti [stage=1; save_reti=1;] { }
-srreglist15:rete, srreglist15 is stage=1 & srreglist15 & op1=1 & rete [stage=2; save_rete=1;] { }
-srreglist15:retx, srreglist15 is stage=2 & srreglist15 & op2=1 & retx [stage=3; save_retx=1;] { }
-srreglist15:rets, srreglist15 is stage=3 & srreglist15 & op3=1 & rets [stage=4; save_rets=1;] { }
-srreglist15:sr4, srreglist15 is stage=4 & srreglist15 & op4=1 & sr4 [stage=5; save_sr4=1;] { }
-srreglist15:psr, srreglist15 is stage=5 & srreglist15 & op5=1 & psr [stage=6; save_psr=1;] { }
-srreglist15:cnum, srreglist15 is stage=6 & srreglist15 & op6=1 & cnum [stage=7; save_cnum=1;] { }
-srreglist15:sr7, srreglist15 is stage=7 & srreglist15 & op7=1 & sr7 [stage=8; save_sr7=1;] { }
-srreglist15:sr8, srreglist15 is stage=8 & srreglist15 & op8=1 & sr8 [stage=9; save_sr8=1;] { }
-srreglist15:sr9, srreglist15 is stage=9 & srreglist15 & op9=1 & sr9 [stage=10; save_sr9=1;] { }
-srreglist15:sr10, srreglist15 is stage=10 & srreglist15 & op10=1 & sr10 [stage=11; save_sr10=1;] { }
-srreglist15:icfg, srreglist15 is stage=11 & srreglist15 & op11=1 & icfg [stage=12; save_icfg=1;] { }
-srreglist15:usp, srreglist15 is stage=12 & srreglist15 & op12=1 & usp [stage=13; save_usp=1;] { }
-srreglist15:ssp, srreglist15 is stage=13 & srreglist15 & op13=1 & ssp [stage=14; save_ssp=1;] { }
-srreglist15:sp, srreglist15 is stage=14 & srreglist15 & op14=1 & sp [stage=15; save_sp=1;] { }
-srreglist15:pc is stage=15 & op15=1 & pc [stage=15; save_pc=1;] { }
+srreglist15:reti is stage=15 & op0=1 & reti [stage=16; save_reti=1;] { }
+srreglist15:rete, srreglist15 is stage=14 & srreglist15 & op1=1 & rete [stage=15; save_rete=1;] { }
+srreglist15:retx, srreglist15 is stage=13 & srreglist15 & op2=1 & retx [stage=14; save_retx=1;] { }
+srreglist15:rets, srreglist15 is stage=12 & srreglist15 & op3=1 & rets [stage=13; save_rets=1;] { }
+srreglist15:sr4, srreglist15 is stage=11 & srreglist15 & op4=1 & sr4 [stage=12; save_sr4=1;] { }
+srreglist15:psr, srreglist15 is stage=10 & srreglist15 & op5=1 & psr [stage=11; save_psr=1;] { }
+srreglist15:cnum, srreglist15 is stage=9 & srreglist15 & op6=1 & cnum [stage=10; save_cnum=1;] { }
+srreglist15:sr7, srreglist15 is stage=8 & srreglist15 & op7=1 & sr7 [stage=9; save_sr7=1;] { }
+srreglist15:sr8, srreglist15 is stage=7 & srreglist15 & op8=1 & sr8 [stage=8; save_sr8=1;] { }
+srreglist15:sr9, srreglist15 is stage=6 & srreglist15 & op9=1 & sr9 [stage=7; save_sr9=1;] { }
+srreglist15:sr10, srreglist15 is stage=5 & srreglist15 & op10=1 & sr10 [stage=6; save_sr10=1;] { }
+srreglist15:icfg, srreglist15 is stage=4 & srreglist15 & op11=1 & icfg [stage=5; save_icfg=1;] { }
+srreglist15:usp, srreglist15 is stage=3 & srreglist15 & op12=1 & usp [stage=4; save_usp=1;] { }
+srreglist15:ssp, srreglist15 is stage=2 & srreglist15 & op13=1 & ssp [stage=3; save_ssp=1;] { }
+srreglist15:sp, srreglist15 is stage=1 & srreglist15 & op14=1 & sp [stage=2; save_sp=1;] { }
+srreglist15:pc, srreglist15 is stage=0 & srreglist15 & op15=1 & pc [stage=1; save_pc=1;] { }
 
-
-
-srreglist15:srreglist15 is stage=0 & srreglist15 & op0=0 [stage=1;] { }
-srreglist15:srreglist15 is stage=1 & srreglist15 & op1=0 [stage=2;] { }
-srreglist15:srreglist15 is stage=2 & srreglist15 & op2=0 [stage=3;] { }
-srreglist15:srreglist15 is stage=3 & srreglist15 & op3=0 [stage=4;] { }
-srreglist15:srreglist15 is stage=4 & srreglist15 & op4=0 [stage=5;] { }
-srreglist15:srreglist15 is stage=5 & srreglist15 & op5=0 [stage=6;] { }
-srreglist15:srreglist15 is stage=6 & srreglist15 & op6=0 [stage=7;] { }
-srreglist15:srreglist15 is stage=7 & srreglist15 & op7=0 [stage=8;] { }
-srreglist15:srreglist15 is stage=8 & srreglist15 & op8=0 [stage=9;] { }
-srreglist15:srreglist15 is stage=9 & srreglist15 & op9=0 [stage=10;] { }
-srreglist15:srreglist15 is stage=10 & srreglist15 & op10=0 [stage=11;] { }
-srreglist15:srreglist15 is stage=11 & srreglist15 & op11=0 [stage=12;] { }
-srreglist15:srreglist15 is stage=12 & srreglist15 & op12=0 [stage=13;] { }
-srreglist15:srreglist15 is stage=13 & srreglist15 & op13=0 [stage=14;] { }
-srreglist15:srreglist15 is stage=14 & srreglist15 & op14=0 [stage=15;] { }
-srreglist15:"" is stage=15 & op15=0 { }
-
+srreglist15:srreglist15 is stage=0 & srreglist15 & op15=0 [stage=1;] { }
+srreglist15:srreglist15 is stage=1 & srreglist15 & op14=0 [stage=2;] { }
+srreglist15:srreglist15 is stage=2 & srreglist15 & op13=0 [stage=3;] { }
+srreglist15:srreglist15 is stage=3 & srreglist15 & op12=0 [stage=4;] { }
+srreglist15:srreglist15 is stage=4 & srreglist15 & op11=0 [stage=5;] { }
+srreglist15:srreglist15 is stage=5 & srreglist15 & op10=0 [stage=6;] { }
+srreglist15:srreglist15 is stage=6 & srreglist15 & op9=0 [stage=7;] { }
+srreglist15:srreglist15 is stage=7 & srreglist15 & op8=0 [stage=8;] { }
+srreglist15:srreglist15 is stage=8 & srreglist15 & op7=0 [stage=9;] { }
+srreglist15:srreglist15 is stage=9 & srreglist15 & op6=0 [stage=10;] { }
+srreglist15:srreglist15 is stage=10 & srreglist15 & op5=0 [stage=11;] { }
+srreglist15:srreglist15 is stage=11 & srreglist15 & op4=0 [stage=12;] { }
+srreglist15:srreglist15 is stage=12 & srreglist15 & op3=0 [stage=13;] { }
+srreglist15:srreglist15 is stage=13 & srreglist15 & op2=0 [stage=14;] { }
+srreglist15:srreglist15 is stage=14 & srreglist15 & op1=0 [stage=15;] { }
+srreglist15:"" is stage=15 & op0=0 { }
 
 srreglist15:"" is stage=15 { }
-
-
 
 :"" { srreglist15 } = [sp++] is op1_15=0b111100110111110 ; srreglist15 & sp & save_pc & save_sp & save_ssp & save_usp & save_icfg & save_sr10 & save_sr9 & save_sr8 & save_sr7 & save_cnum & save_psr & save_sr4 & save_rets & save_retx & save_rete & save_reti [stage=0;] {
 	
@@ -2582,29 +2584,48 @@ weirdimm: imm is op8_11=0b1111 & imm0_7 [ imm = (imm0_7 << 24) | (imm0_7 << 16) 
 	rx0_3 = ry12_15 & ~weirdimm;
 }
 
-#11111101010-----|XxxxYyyyZzzz----		r`Xxxx` = uextra(r`Yyyy`, p:r`Zzzz`[12:8], l:r`Zzzz`[4:0])
-:"" "uextra" is op5_15=0b11111101010 ; rx12_15 & ry8_11 & rz4_7 {
-	_stub();
+:"" rx12_15 = "uextra"(ry8_11, "p:" rz4_7"[12:8]", "l:"rz4_7_dup"[4:0]") is op5_15=0b11111101010 ; rx12_15 & ry8_11 & rz4_7 & rz4_7_dup {
+	local p:4 = (rz4_7 >> 8) & 0x1F;
+	local l:4 = rz4_7 & 0xF;
+	local mask:4 = (1 << l) - 1;
+	rx12_15 = (ry8_11 >> p) & mask;
+	flags_nz(rx12_15);
 }
 
-#11111101011-----|XxxxYyyyZzzz----		r`Xxxx` = sextra(r`Yyyy`, p:r`Zzzz`[12:8], l:r`Zzzz`[4:0])
-:"" "sextra" is op5_15=0b11111101011 ; rx12_15 & ry8_11 & rz4_7 {
-	_stub();
+:"" rx12_15 = "sextra"(ry8_11, "p:" rz4_7"[12:8]", "l:"rz4_7_dup"[4:0]")  is op5_15=0b11111101011 ; rx12_15 & ry8_11 & rz4_7 & rz4_7_dup {
+	local p:4 = (rz4_7 >> 8) & 0x1F;
+	local l:4 = rz4_7 & 0xF;
+	
+	local mask:4 = (1 << l) - 1;
+	local tmp:4 = (ry8_11 s>> p) & mask;
+	rx12_15 = (tmp << (31 - l)) s>> (31 - l); 
+	flags_nz(rx12_15);
 }
 
 :"" rx12_15 = "uextra"(ry8_11, "p:" imm4_7, "l:" imm0_4) is op5_15=0b11111101100 & imm0_4 ; rx12_15 & ry8_11 & imm4_7 {
 	local mask:4 = (1 << imm0_4) - 1;
 	rx12_15 = (ry8_11 >> imm4_7) & mask;
+	flags_nz(rx12_15);
 }
 
-#11111101101Aaaaa|XxxxYyyyBbbbb---		r`Xxxx` = sextra(r`Yyyy`, p:`Bbbbb`, l:`Aaaaa`)
+# Performs a signed right shift by p, masks to a l-bit value and sign extends l->32
+# sextra(0x0A550A55, p:1, l:1) => 0
+# sextra(0x0A550A55, p:8, l:8) => 0xA
+# sextra(0x0A550A55, p:4, l:31) => 0xa550a5 ( >> 4)
+# sextra(0x0A550A55, p:8, l:31) => 0xa550a ( >> 8 )
+# sextra(0x0A550A55, p:1, l:8) => 0x2a ( 8-bit mask)
+# sextra(0x0A550A55, p:2, l:8) => 0xffffff95
 :"" rx12_15 = "sextra"(ry8_11, "p:" imm4_7, "l:" imm0_4) is op5_15=0b11111101101 & imm0_4 ; rx12_15 & ry8_11 & imm4_7 {
-	_stub();
+	local mask:4 = (1 << imm0_4) - 1;
+	local tmp:4 = (ry8_11 s>> imm4_7) & mask;
+	rx12_15 = (tmp << (31 - imm0_4)) s>> (31 - imm0_4); 
+	flags_nz(rx12_15);
 }
 
 :"" rx12_15 = "insert"(ry8_11, "p:" imm4_7, "l:" imm0_4) is op5_15=0b11111101110 & imm0_4 ; rx12_15 & ry8_11 & imm4_7 {
 	local mask:4 = (1 << imm0_4) - 1;
 	rx12_15 = (rx12_15 & ~(mask << imm4_7)) | ((ry8_11 & mask) << imm4_7);
+	flags_nz(rx12_15);
 }
 
 :"" rx12_15 = ry8_11 | rz4_7 is op0_15=0b1111110111100000 ; rx12_15 & ry8_11 & rz4_7 {
@@ -2650,18 +2671,18 @@ weirdimm: imm is op8_11=0b1111 & imm0_7 [ imm = (imm0_7 << 24) | (imm0_7 << 16) 
 
 # Compares the input with 0, sets rx if not zero. Sets Z flag if ry == 0. Tested on HW
 :"" rx12_15 = "zcmp"(ry8_11) is op0_15=0b1111110111101010 ; rx12_15 & ry8_11 {
-	rx12_15 = ry8_11 != 0;
+	rx12_15 = zext(ry8_11 != 0);
 	Z = ry8_11 == 0;
 }
 
-#11111101111011--|XxxxYyyyZzzz----		r`Xxxx` <= insert(r`Yyyy`, p:r`Zzzz`[12:8], l:r`Zzzz`[4:0])
-
-
-macro flags_nz(x) {
-	N = x s< 0;
-	Z = x == 0;
+:"" rx12_15 = "insert"(ry8_11, "p:"rz4_7"[12:8]", "l:"rz4_7_dup"[4:0]") is op2_15=0b11111101111011 ; rx12_15 & ry8_11 & rz4_7 & rz4_7_dup {
+	local p:4 = (rz4_7 >> 8) & 0x1F;
+	local l:4 = rz4_7 & 0xF;
+	
+	local mask:4 = (1 << l) - 1;
+	rx12_15 = (rx12_15 & ~(mask << p)) | ((ry8_11 & mask) << p);
+	flags_nz(rx12_15);
 }
-
 
 # Unsigned left shift
 :"" rx12_15 = ry8_11 "<<" imm3_10 is op0_15=0b1111110111110000 ; rx12_15 & ry8_11 & imm3_10 {
@@ -2692,7 +2713,6 @@ macro flags_nz(x) {
 	flags_nz(rx12_15);
 }
 
-#TODO: shift of 0?
 :"" rx12_15 = ry8_11 "<c>" imm3_10 is op1_15=0b111111011111011 ; rx12_15 & ry8_11 & imm3_10 {
 	local tmp:8 = (zext(C) << 32) | zext(ry8_11);
 	tmp = (tmp >> imm3_10) | (tmp << (33 - imm3_10));
@@ -2776,17 +2796,10 @@ macro flags_nz(x) {
 
 # 48 bit instructions
 
-#11111111000-****|XxxxAaaaaaaaaaaa|Bbbbbbbbbbbbbbbb		if (r`Xxxx` == s`Aaaaaaaaaaaa`) goto s`Bbbbbbbbbbbbbbbb0`
-#	    .....             The immediates can be unsigned as well!!
-#         /\
-#         00
-#         01
-#         10
-#
-
 # op5_6 seems to set the type of the compare imm
 # 0b00 -> normal
 # 0b01 -> weirdimm
+# 0b10 & 11 -> Unknown?
 # Not sure how this works for signed / unsigned yet
 
 # Weirdimm forms
@@ -2810,25 +2823,17 @@ macro flags_nz(x) {
 	goto [gotoimm32];
 }
 
-:ifs (rx12_15 "pl" weirdimm) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b01 & op0_3=0b0101 ; rx12_15 & weirdimm ; gotoimm32 {
-    # Positive, N==0
-    _stub();
-}
+:ifs (rx12_15 "pl" weirdimm) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b01 & op0_3=0b0101 ; rx12_15 & weirdimm ; gotoimm32 {}
 
-:ifs (rx12_15 "mi" weirdimm) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b01 & op0_3=0b0100 ; rx12_15 & weirdimm ; gotoimm32 {
-    # Negative, N == 1
-    _stub();
-}
+:ifs (rx12_15 "mi" weirdimm) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b01 & op0_3=0b0100 ; rx12_15 & weirdimm ; gotoimm32 {}
 
-:ifs (rx12_15 "vs" weirdimm) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b01 & op0_3=0b0110 ; rx12_15 & weirdimm ; gotoimm32 {
-    # Sign overflow, V == 1
-    _stub();
-}
+:ifs (rx12_15 "vs" weirdimm) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b01 & op0_3=0b0110 ; rx12_15 & weirdimm ; gotoimm32 {}
 
-:ifs (rx12_15 "vc" weirdimm) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b01 & op0_3=0b0111 ; rx12_15 & weirdimm ; gotoimm32 {
-    #No sign overflow, V == 0
-    _stub();
-}
+# These instructions have a generic condition code in op0_3, for unsupported combinations e.g. vc isn't a two argument compare:
+# These decode as "??" compares and behave like a nop, (even in this case when the V flag is clear).
+# We keep the broken condition so we can tell them apart, but keep the nop behaviour
+# Tested on AW631N HW
+:ifs (rx12_15 "vs" weirdimm) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b01 & op0_3=0b0111 ; rx12_15 & weirdimm ; gotoimm32 {}
 
 :ifs (rx12_15 ">" weirdimm) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b01 & op0_3=0b1000 ; rx12_15 & weirdimm ; gotoimm32 {
     if(rx12_15 <= weirdimm) goto inst_next;
@@ -2857,9 +2862,9 @@ macro flags_nz(x) {
 :ifs (rx12_15 "al" weirdimm) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b01 & op0_3=0b1110 ; rx12_15 & weirdimm ; gotoimm32 {
     goto [gotoimm32];
 }
-:ifs (rx12_15 "??" weirdimm) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b01 & op0_3=0b1111 ; rx12_15 & weirdimm ; gotoimm32 {
-    _stub();
-}
+
+# Reversed condition
+:ifs (rx12_15 "??" weirdimm) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b01 & op0_3=0b1111 ; rx12_15 & weirdimm ; gotoimm32 {}
 
 # Normal forms
 
@@ -2883,25 +2888,13 @@ macro flags_nz(x) {
 	goto [gotoimm32];
 }
 
-:ifs (rx12_15 "pl" imm0_11) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b00 & op0_3=0b0101 ; rx12_15 & imm0_11 ; gotoimm32 {
-    # Positive, N==0
-    _stub();
-}
+:ifs (rx12_15 "pl" imm0_11) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b00 & op0_3=0b0101 ; rx12_15 & imm0_11 ; gotoimm32 {}
 
-:ifs (rx12_15 "mi" imm0_11) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b00 & op0_3=0b0100 ; rx12_15 & imm0_11 ; gotoimm32 {
-    # Negative, N == 1
-    _stub();
-}
+:ifs (rx12_15 "mi" imm0_11) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b00 & op0_3=0b0100 ; rx12_15 & imm0_11 ; gotoimm32 {}
 
-:ifs (rx12_15 "vs" imm0_11) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b00 & op0_3=0b0110 ; rx12_15 & imm0_11 ; gotoimm32 {
-    # Sign overflow, V == 1
-    _stub();
-}
+:ifs (rx12_15 "vs" imm0_11) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b00 & op0_3=0b0110 ; rx12_15 & imm0_11 ; gotoimm32 {}
 
-:ifs (rx12_15 "vc" imm0_11) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b00 & op0_3=0b0111 ; rx12_15 & imm0_11 ; gotoimm32 {
-    #No sign overflow, V == 0
-    _stub();
-}
+:ifs (rx12_15 "vc" imm0_11) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b00 & op0_3=0b0111 ; rx12_15 & imm0_11 ; gotoimm32 {}
 
 :ifs (rx12_15 ">" imm0_11) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b00 & op0_3=0b1000 ; rx12_15 & imm0_11 ; gotoimm32 {
     if(rx12_15 <= imm0_11) goto inst_next;
@@ -2930,13 +2923,7 @@ macro flags_nz(x) {
 :ifs (rx12_15 "al" imm0_11) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b00 & op0_3=0b1110 ; rx12_15 & imm0_11 ; gotoimm32 {
     goto [gotoimm32];
 }
-:ifs (rx12_15 "??" imm0_11) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b00 & op0_3=0b1111 ; rx12_15 & imm0_11 ; gotoimm32 {
-    _stub();
-}
-
-
-
-# TODO: rest
+:ifs (rx12_15 "??" imm0_11) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b00 & op0_3=0b1111 ; rx12_15 & imm0_11 ; gotoimm32 {}
 
 
 
