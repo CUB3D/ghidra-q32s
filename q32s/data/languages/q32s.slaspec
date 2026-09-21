@@ -206,7 +206,6 @@ attach variables [sry8_11 srx0_3] [
 	ssp
 	sp
 
-	# TODO: assign = goto
 	pc
 ];
 
@@ -371,12 +370,20 @@ define pcodeop swi;
 	ssp = sp;
 }
 
+# if b[x] == 0, b[x] == 0xFF, flags all clear
+# if b[x] == 1, b[x] = 0xFF, V set
+# if b[x] == 0xFF, b[x] = 0xFF, all flags set
+# if b[x] == 0x7F, b[x] = 0xFF, all flags set
+# if b[x] == 0xFf, b[x] = 0xFF, VCZ set, N clear
+# This sets VCZN to b[rx] & 0xF and replaces it with 0xFF?
 :testset "b"[rx0_3] is op5_15=0b00000000010 & rx0_3 {
     # Assuming this works like 68k
     local tmp:1 = *[ram]:1 rx0_3;
-    Z = tmp == 0;
-    N = tmp s< 0;
-	*[ram]:1 rx0_3 = tmp | (1 << 7);
+    V = (tmp & 0b1) != 0;
+    V = (tmp & 0b10) != 0;
+    Z = (tmp & 0b100) != 0;
+    N = (tmp & 0b1000) != 0;
+    *[ram]:1 rx0_3 = 0xFF;
 }
 
 
@@ -405,7 +412,7 @@ define pcodeop swi;
 
 :tbh [rx0_3] is op4_15=0b000000001011 & rx0_3 {
 	local tmp:4 = inst_next + rx0_3;
-	local dest:4 = inst_next + zext(*[ram]:2 tmp) << 1;
+	local dest:4 = inst_next + (zext(*[ram]:2 tmp) << 1);
 	goto [dest];
 }
 
