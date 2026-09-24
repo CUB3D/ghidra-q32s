@@ -1,5 +1,6 @@
 # Sleigh specification file for q32s Processor
 # Instruction definitions from here https://kagaimiq.github.io/jielie/cpu/q32s.html
+# Flag setting and non-trival operations figured out by testing on a physical AC632N "devkitboard"
 
 define endian=little;
 define alignment=2;
@@ -137,9 +138,8 @@ define register offset=0x100 size=64 [
 ];
 
 define context testctx
-    stage         = (  0, 8) noflow
+    stage = (  0, 8) noflow
     
-    #TODO: put in order
     save_reti = (9, 9) noflow
     save_rete = (10, 10) noflow
     save_retx = (11, 11) noflow
@@ -215,8 +215,6 @@ define bitrange V=psr[0,1] # Overflow
 				Z=psr[2,1] # Zero
 				N=psr[3,1] # Negative
 ;
-
-#TODO: flag setting?
 
 
 macro push(v) {
@@ -1309,32 +1307,49 @@ srreglist:"" is stage=6 { }
 	rx0_3 = ry4_7;
 }
 
+
 :"" rx0_3 += ry4_7 is op8_15=0b00001001 & ry4_7 & rx0_3 {
+	local tmp:8 = sext(rx0_3) + sext(ry4_7);
 	rx0_3 = rx0_3 + ry4_7;
+	C = carry(rx0_3, ry4_7);
+	flags_nz(rx0_3);
+	V = (tmp s< 0) != N;
 }
 
+# Does not set flags, tested on HW
 :sp += imm is op9_15=0b0000101 & imm1_8s [imm = imm1_8s << 2;] {
 	sp = sp + imm;
 }
 
 :"" rx0_3 "<<=" ry6_8 is op9_15=0b0000110 & ry6_8 & imm4_5=0b00 & rx0_3 {
-	rx0_3 = rx0_3 << ry6_8;
+	local tmp:8 = zext(rx0_3) << zext(ry6_8);
+	rx0_3 = tmp:4;
+	C = (tmp >> 32) & 1;
+	flags_nz(rx0_3);
 }
 
 :"" rx0_3 "<<<=" ry6_8 is op9_15=0b0000110 & ry6_8 & imm4_5=0b01 & rx0_3 {
-	rx0_3 = rx0_3 << ry6_8;
+	local tmp:8 = zext(rx0_3) << zext(ry6_8);
+	rx0_3 = tmp:4;
+	C = (tmp >> 32) & 1;
+	flags_nz(rx0_3);
 }
 
 :"" rx0_3 ">>=" ry6_8 is op9_15=0b0000110 & ry6_8 & imm4_5=0b10 & rx0_3 {
+	C = (rx0_3 >> (ry6_8 - 1)) & 1;
 	rx0_3 = rx0_3 >> ry6_8;
+	flags_nz(rx0_3);
 }
 
 :"" rx0_3 ">>>=" ry6_8 is op9_15=0b0000110 & ry6_8 & imm4_5=0b11 & rx0_3 {
+	C = (rx0_3 >> (ry6_8 - 1)) & 1;
 	rx0_3 = rx0_3 s>> ry6_8;
+	flags_nz(rx0_3);
 }
 
 :"" rx0_2 = ry3_5 * rz6_8 is op9_15=0b0000111 & rz6_8 & ry3_5 & rx0_2 {
 	rx0_2 = ry3_5 * rz6_8;
+	flags_nz(rx0_3);
 }
 
 :call dest is op11_15=0b00010 & imm0_10s [ dest = inst_next + (imm0_10s<<1); ] {
@@ -1398,75 +1413,105 @@ ifimm: dest is imm0_8s [ dest = inst_next + (imm0_8s << 1); ] { export *[const]:
 }
 
 :"" rx0_3 += imm4_11s is op12_15=0b1000 & imm4_11s & rx0_3 {
+	local tmp:8 = sext(rx0_3) + sext(imm4_11s);
 	rx0_3 = rx0_3 + imm4_11s;
+	C = carry(rx0_3, imm4_11s);
+	flags_nz(rx0_3);
+	V = (tmp s< 0) != N;
 }
+
 
 :"" rx0_3 = ry9_11 + imm4_8 is op12_15=0b1001 & ry9_11 & imm4_8 & rx0_3 {
+	local tmp:8 = sext(ry9_11) + sext(imm4_8);
 	rx0_3 = ry9_11 + imm4_8;
+	C = carry(ry9_11, imm4_8);
+	flags_nz(rx0_3);
+	V = (tmp s< 0) != N;
 }
 
+# Does not set flags, tested on HW
 :"" rx0_3 = sp + imm4_11s is op12_15=0b1010 & imm4_11s & rx0_3 & sp {
 	rx0_3 = sp + imm4_11s;
 }
 
 :"" rx0_3 = rz9_11 + ry6_8 is op12_15=0b1011 & rz9_11 & ry6_8 & imm4_5=0b00 & rx0_3 {
+	local tmp:8 = sext(rz9_11) + sext(ry6_8);
 	rx0_3 = rz9_11 + ry6_8;
+	C = carry(rz9_11, ry6_8);
+	flags_nz(rx0_3);
+	V = (tmp s< 0) != N;
 }
 
 :"" rx0_3 |= (1 "<<" imm7_11) is op12_15=0b1011 & imm7_11 & op4_6=0b001 & rx0_3 {
 	rx0_3 = rx0_3 | (1 << imm7_11);
+	flags_nz(rx0_3);
 }
 
 :"" rx0_3 |= ry9_11 is op12_15=0b1011 & ry9_11 & imm4_8=0b00101 & rx0_3 {
 	rx0_3 = rx0_3 | ry9_11;
+	flags_nz(rx0_3);
 }
 
 :"" rx0_3 ^= ry9_11 is op12_15=0b1011 & ry9_11 & imm4_8=0b01101 & rx0_3 {
 	rx0_3 = rx0_3 ^ ry9_11;
+	flags_nz(rx0_3);
 }
 
 :"" rx0_3 &= ry9_11 is op12_15=0b1011 & ry9_11 & imm4_8=0b10101 & rx0_3 {
 	rx0_3 = rx0_3 & ry9_11;
+	flags_nz(rx0_3);
 }
 
 :"" rx0_3 = "~"ry9_11 is op12_15=0b1011 & ry9_11 & imm4_8=0b11101 & rx0_3 {
 	rx0_3 = ~ry9_11;
+	flags_nz(rx0_3);
 }
 
 :"" rx0_3 = rz9_11 - ry6_8 is op12_15=0b1011 & rz9_11 & ry6_8 & imm4_5=0b10 & rx0_3 {
+	local tmp:8 = sext(rz9_11) - sext(ry6_8);
 	rx0_3 = rz9_11 - ry6_8;
-	N = rx0_3 s< 0;
-	Z = rx0_3 == 0;
-	V = sborrow(rz9_11, ry6_8);
-	C = rz9_11 <  ry6_8;
+	flags_nz(rx0_3);
+	C = sborrow(rz9_11, ry6_8);
+	V = (tmp s< 0) != N;
 }
 
 :"" rx0_3 ^= (1 "<<" imm7_11) is op12_15=0b1011 & imm7_11 & op4_6=0b011 & rx0_3 {
 	rx0_3 = rx0_3 ^ (1 << imm7_11);
+	flags_nz(rx0_3);
 }
 
 :"" rx0_3 &= "~"(1 "<<" imm7_11) is op12_15=0b1011 & imm7_11 & op4_6=0b111 & rx0_3 {
 	rx0_3 = rx0_3 & (~(1 << imm7_11));
+	flags_nz(rx0_3);
 }
 
 shiftimm6_10: imm6_10 is imm6_10 { export *[const]:4 imm6_10; }
 shiftimm6_10: 32 is imm6_10=0 { local tmp:4 = 32; export *[const]:4 tmp; }
 
 :"" rx0_2 = ry3_5 "<<" shiftimm6_10 is op11_15=0b11000 & shiftimm6_10 & ry3_5 & rx0_2 {
-	rx0_2 = ry3_5 << shiftimm6_10;
+	local tmp:8 = zext(ry3_5) << zext(shiftimm6_10);
+	rx0_2 = tmp:4;
+	C = (tmp >> 32) & 1;
+	flags_nz(rx0_2);
 }
 
 :"" rx0_2 = ry3_5 "<<<" shiftimm6_10 is op11_15=0b11001 & shiftimm6_10 & ry3_5 & rx0_2 {
-	rx0_2 = ry3_5 << shiftimm6_10;
+	local tmp:8 = zext(ry3_5) << zext(shiftimm6_10);
+	rx0_2 = tmp:4;
+	C = (tmp >> 32) & 1;
+	flags_nz(rx0_2);
 }
 
 :"" rx0_2 = ry3_5 ">>" shiftimm6_10 is op11_15=0b11010 & shiftimm6_10 & ry3_5 & rx0_2 {
+	C = (ry3_5 >> (shiftimm6_10 - 1)) & 1;
 	rx0_2 = ry3_5 >> shiftimm6_10;
-	
+	flags_nz(rx0_2);
 }
 
 :"" rx0_2 = ry3_5 ">>>" shiftimm6_10 is op11_15=0b11011 & shiftimm6_10 & ry3_5 & rx0_2 {
+	C = (ry3_5 >> (shiftimm6_10 - 1)) & 1;
 	rx0_2 = ry3_5 s>> shiftimm6_10;	
+	flags_nz(rx0_2);
 }
 
 
@@ -2515,6 +2560,7 @@ weirdimm: imm is op8_11=0b1111 & imm0_7 [ imm = (imm0_7 << 24) | (imm0_7 << 16) 
 	tmp = tmp | (((ry8_11 >> 16) & 0xFF) << 8);
 	tmp = tmp | ((ry8_11 >> 24) & 0xFF);
 	rx12_15 = tmp;
+	flags_nz(rx12_15);
 }
 
 # This swaps the high and low byte of each 16-bit word, tested on HW
@@ -2529,6 +2575,7 @@ weirdimm: imm is op8_11=0b1111 & imm0_7 [ imm = (imm0_7 << 24) | (imm0_7 << 16) 
 	tmp = tmp | (hi & 0xFF) << 24;
 	tmp = tmp | ((hi >> 8) & 0xFF) << 16;
 	rx12_15 = tmp;
+	flags_nz(rx12_15);
 }
 
 # This swaps the high and low byte of the low 16-bit word and clears the top, tested on Hw
@@ -2538,34 +2585,66 @@ weirdimm: imm is op8_11=0b1111 & imm0_7 [ imm = (imm0_7 << 24) | (imm0_7 << 16) 
 	tmp = tmp | (lo & 0xFF) << 8;
 	tmp = tmp | (lo >> 8) & 0xFF;
 	rx12_15 = tmp;
+	flags_nz(rx12_15);
 }
 
 :"" rx0_3 = ry12_15 + weirdimm is op4_15=0b111110110100 & rx0_3 ; ry12_15 & weirdimm {
+	local tmp:8 = sext(ry12_15) + sext(weirdimm);
 	rx0_3 = ry12_15 + weirdimm;
+	C = carry(ry12_15, weirdimm);
+	flags_nz(rx0_3);
+	V = (tmp s< 0) != N;
 }
 
 :"" rx0_3 = ry12_15 - weirdimm is op4_15=0b111110110101 & rx0_3 ; ry12_15 & weirdimm {
+	local tmp:8 = sext(ry12_15) - sext(weirdimm);
 	rx0_3 = ry12_15 - weirdimm;
+	flags_nz(rx0_3);
+	C = sborrow(ry12_15, weirdimm);
+	V = (tmp s< 0) != N;
 }
 
 :"" rx0_3 = weirdimm - ry12_15 is op5_15=0b11111011011 & rx0_3 ; ry12_15 & weirdimm {
+	local tmp:8 = sext(weirdimm) - sext(ry12_15);
 	rx0_3 = weirdimm - ry12_15;
+	flags_nz(rx0_3);
+	C = sborrow(weirdimm, ry12_15);
+	V = (tmp s< 0) != N;
 }
 
 :"" rx12_15 = ry8_11 + rz4_7 is op4_15=0b111110111000 ; rx12_15 & ry8_11 & rz4_7 {
-	rx12_15 = ry8_11 + rz4_7;
+	local tmp:8 = sext(ry8_11) + sext(rz4_7);
+	rx0_3 = ry8_11 + rz4_7;
+	C = carry(ry8_11, rz4_7);
+	flags_nz(rx0_3);
+	V = (tmp s< 0) != N;
 }
+
 
 :"" rx12_15 = ry8_11 - rz4_7 is op4_15=0b111110111001 ; rx12_15 & ry8_11 & rz4_7 {
+	local tmp:8 = sext(ry8_11) - sext(rz4_7);
 	rx12_15 = ry8_11 - rz4_7;
+	flags_nz(rx0_3);
+	C = sborrow(ry8_11, rz4_7);
+	V = (tmp s< 0) != N;
 }
 
-:"" rx12_15 = ry8_11 + rz4_7 + "C" is op4_15=0b111110111010 ; rx12_15 & ry8_11 & rz4_7 {
+:"" rx12_15 = ry8_11 + rz4_7 + "C" is op4_15=0b111110111010 ; rx12_15 & ry8_11 & rz4_7 {	
+	local tmp:8 = sext(ry8_11) + sext(rz4_7) + zext(C);
 	rx12_15 = ry8_11 + rz4_7 + zext(C);
+	C = carry(ry8_11, rz4_7 + zext(C));
+	flags_nz(rx12_15);
+	V = (tmp s< 0) != N;
 }
 
 :"" rx12_15 = ry8_11 + rz4_7 - !"C" is op4_15=0b111110111011 ; rx12_15 & ry8_11 & rz4_7 {
-	rx12_15 = ry8_11 + rz4_7 + zext(~C);
+	rx12_15 = ry8_11 + rz4_7 - zext(~C);
+	
+	local tmp:8 = sext(ry8_11) + sext(rz4_7) - zext(~C);
+	rx12_15 = ry8_11 + rz4_7 - zext(~C);
+	C = carry(ry8_11, rz4_7 - zext(~C));
+	flags_nz(rx12_15);
+	V = (tmp s< 0) != N;
 }
 
 :"" sp += imm0_15s is op5_15=0b11111011110 ; imm0_15s & sp {
@@ -2577,22 +2656,31 @@ weirdimm: imm is op8_11=0b1111 & imm0_7 [ imm = (imm0_7 << 24) | (imm0_7 << 16) 
 }
 
 :"" rx0_3 = ry4_7 + imm0_15s is op8_15=0b11111100 & ry4_7 & rx0_3 ; imm0_15s {
+	local tmp:8 = sext(ry4_7) + sext(imm0_15s);
 	rx0_3 = ry4_7 + imm0_15s;
+	C = carry(ry4_7, imm0_15s);
+	flags_nz(rx0_3);
+	V = (tmp s< 0) != N;
 }
 
 :"" rx0_3 = ry12_15 | weirdimm is op4_15=0b111111010000 & rx0_3 ; ry12_15 & weirdimm {
 	rx0_3 = ry12_15 | weirdimm;
+	flags_nz(rx0_3);
 }
 
 :"" rx0_3 = ry12_15 ^ weirdimm is op4_15=0b111111010001 & rx0_3 ; ry12_15 & weirdimm {
 	rx0_3 = ry12_15 ^ weirdimm;
+	flags_nz(rx0_3);
 }
 
 :"" rx0_3 = ry12_15 & weirdimm is op4_15=0b111111010010 & rx0_3 ; ry12_15 & weirdimm {
 	rx0_3 = ry12_15 & weirdimm;
+	flags_nz(rx0_3);
 }
+
 :"" rx0_3 = ry12_15 & "~"weirdimm is op4_15=0b111111010011 & rx0_3 ; ry12_15 & weirdimm {
 	rx0_3 = ry12_15 & ~weirdimm;
+	flags_nz(rx0_3);
 }
 
 :"" rx12_15 = "uextra"(ry8_11, "p:" rz4_7"[12:8]", "l:"rz4_7_dup"[4:0]") is op5_15=0b11111101010 ; rx12_15 & ry8_11 & rz4_7 & rz4_7_dup {
@@ -2641,18 +2729,22 @@ weirdimm: imm is op8_11=0b1111 & imm0_7 [ imm = (imm0_7 << 24) | (imm0_7 << 16) 
 
 :"" rx12_15 = ry8_11 | rz4_7 is op0_15=0b1111110111100000 ; rx12_15 & ry8_11 & rz4_7 {
 	rx12_15 = ry8_11 | rz4_7;
+	flags_nz(rx12_15);
 }
 
 :"" rx12_15 = ry8_11 ^ rz4_7 is op0_15=0b1111110111100001 ; rx12_15 & ry8_11 & rz4_7 {
 	rx12_15 = ry8_11 ^ rz4_7;
+	flags_nz(rx12_15);
 }
 
 :"" rx12_15 = ry8_11 & rz4_7 is op0_15=0b1111110111100010 ; rx12_15 & ry8_11 & rz4_7 {
 	rx12_15 = ry8_11 & rz4_7;
+	flags_nz(rx12_15);
 }
 
 :"" rx12_15 = ry8_11 & "~"rz4_7 is op0_15=0b1111110111100011 ; rx12_15 & ry8_11 & rz4_7 {
 	rx12_15 = ry8_11 & ~rz4_7;
+	flags_nz(rx12_15);
 }
 
 :"" rx12_15 = ry8_11 ".b0" is op0_15=0b1111110111100100 ; rx12_15 & ry8_11 {
@@ -2672,18 +2764,20 @@ weirdimm: imm is op8_11=0b1111 & imm0_7 [ imm = (imm0_7 << 24) | (imm0_7 << 16) 
 }
 
 :"" rx12_15 = "clz"(ry8_11) is op0_15=0b1111110111101000 ; rx12_15 & ry8_11 {
+	flags_nz(ry8_11);
 	rx12_15 = lzcount(ry8_11);
 }
 
 # This is a count leading zero(S)?, output matches clz on HW
 :"" rx12_15 = "cls"(ry8_11) is op0_15=0b1111110111101001 ; rx12_15 & ry8_11 {
+	flags_nz(ry8_11);
 	rx12_15 = lzcount(ry8_11);
 }
 
-# Compares the input with 0, sets rx if not zero. Sets Z flag if ry == 0. Tested on HW
+# Compares the input with 0, sets rx if not zero. Sets NZ flags based on input. Tested on HW
 :"" rx12_15 = "zcmp"(ry8_11) is op0_15=0b1111110111101010 ; rx12_15 & ry8_11 {
-	rx12_15 = zext(ry8_11 != 0);
-	Z = ry8_11 == 0;
+	flags_nz(ry8_11);
+	rx12_15 = zext(Z == 0);
 }
 
 :"" rx12_15 = "insert"(ry8_11, "p:"rz4_7"[12:8]", "l:"rz4_7_dup"[4:0]") is op2_15=0b11111101111011 ; rx12_15 & ry8_11 & rz4_7 & rz4_7_dup {
@@ -2697,24 +2791,30 @@ weirdimm: imm is op8_11=0b1111 & imm0_7 [ imm = (imm0_7 << 24) | (imm0_7 << 16) 
 
 # Unsigned left shift
 :"" rx12_15 = ry8_11 "<<" imm3_10 is op0_15=0b1111110111110000 ; rx12_15 & ry8_11 & imm3_10 {
-	rx12_15 = ry8_11 << imm3_10;
+	local tmp:8 = zext(ry8_11) << zext(imm3_10);
+	rx12_15 = tmp:4;
+	C = (tmp >> 32) & 1;
 	flags_nz(rx12_15);
 }
 
 # Signed left shift
 :"" rx12_15 = ry8_11 "<<<" imm3_10 is op0_15=0b1111110111110001 ; rx12_15 & ry8_11 & imm3_10 {
-	rx12_15 = ry8_11 << imm3_10;
+	local tmp:8 = zext(ry8_11) << zext(imm3_10);
+	rx12_15 = tmp:4;
+	C = (tmp >> 32) & 1;
 	flags_nz(rx12_15);
 }
 
 # Unsigned right shift
 :"" rx12_15 = ry8_11 ">>" imm3_10 is op0_15=0b1111110111110010 ; rx12_15 & ry8_11 & imm3_10 {
+	C = (ry8_11 >> (imm3_10 - 1)) & 1;
 	rx12_15 = ry8_11 >> imm3_10;
 	flags_nz(rx12_15);
 }
 
 # Signed right shift
 :"" rx12_15 = ry8_11 ">>>" imm3_10 is op0_15=0b1111110111110011 ; rx12_15 & ry8_11 & imm3_10 {
+	C = (ry8_11 >> (imm3_10 - 1)) & 1;
 	rx12_15 = ry8_11 s>> imm3_10;
 	flags_nz(rx12_15);
 }
@@ -2734,21 +2834,27 @@ weirdimm: imm is op8_11=0b1111 & imm0_7 [ imm = (imm0_7 << 24) | (imm0_7 << 16) 
 }
 
 :"" rx12_15 = ry8_11 "<<" rz4_7 is op0_15=0b1111110111111000 ; rx12_15 & ry8_11 & rz4_7 {
-	rx12_15 = ry8_11 << rz4_7;
+	local tmp:8 = zext(ry8_11) << zext(rz4_7);
+	rx12_15 = tmp:4;
+	C = (tmp >> 32) & 1;
 	flags_nz(rx12_15);
 }
 
 :"" rx12_15 = ry8_11 "<<<" rz4_7 is op0_15=0b1111110111111001 ; rx12_15 & ry8_11 & rz4_7 {
-	rx12_15 = ry8_11 << rz4_7;
+	local tmp:8 = zext(ry8_11) << zext(rz4_7);
+	rx12_15 = tmp:4;
+	C = (tmp >> 32) & 1;
 	flags_nz(rx12_15);
 }
 
 :"" rx12_15 = ry8_11 ">>" rz4_7 is op0_15=0b1111110111111010 ; rx12_15 & ry8_11 & rz4_7 {
+	C = (ry8_11 >> (rz4_7 - 1)) & 1;
 	rx12_15 = ry8_11 >> rz4_7;
 	flags_nz(rx12_15);
 }
 
 :"" rx12_15 = ry8_11 ">>>" rz4_7 is op0_15=0b1111110111111011 ; rx12_15 & ry8_11 & rz4_7 {
+	C = (ry8_11 >> (rz4_7 - 1)) & 1;
 	rx12_15 = ry8_11 s>> rz4_7;
 	flags_nz(rx12_15);
 }
@@ -2760,6 +2866,7 @@ weirdimm: imm is op8_11=0b1111 & imm0_7 [ imm = (imm0_7 << 24) | (imm0_7 << 16) 
 #  0xbacda55a <> 3 => 0b01010111010110011011010010101011
 :"" rx12_15 = ry8_11 "<>" rz4_7 is op1_15=0b111111011111110 ; rx12_15 & ry8_11 & rz4_7 {
 	rotate_right(rx12_15, ry8_11, rz4_7);
+	flags_nz(rx12_15);
 }
 
 # This is a rotate right through carry, tested on HW
@@ -2769,39 +2876,54 @@ weirdimm: imm is op8_11=0b1111 & imm0_7 [ imm = (imm0_7 << 24) | (imm0_7 << 16) 
 	C = (tmp & 0x100000000) != 0;
 	rx12_15 = tmp:4;
 	Z = rx12_15 == 0;
+	N = rx12_15 s< 0;
 }
 
 :"" rx0_3 = ry12_15 * weirdimm is op6_15=0b1111111000 & rx0_3 ; ry12_15 & weirdimm {
 	rx0_3 = ry12_15 * weirdimm;
+	flags_nz(rx0_3);
 }
 
 :"" rx12_15 = ry8_11 * rz4_7 is op6_15=0b1111111001 ; rx12_15 & ry8_11 & rz4_7 {
 	rx12_15 = ry8_11 * rz4_7;
+	flags_nz(rx12_15);
 }
 
-
 :"" rx12_15 += ry8_11 * rz4_7 is op6_15=0b1111111010 & op4=0; rx12_15 & ry8_11 & rz4_7 {
-	rx12_15 = rx12_15 + ry8_11 * rz4_7;
+	local tmp:8 = sext(rx12_15) + (sext(ry8_11) * sext(rz4_7));
+	rx12_15 = rx12_15 + (ry8_11 * rz4_7);
+	C = carry(ry8_11, rz4_7);
+	flags_nz(rx12_15);
+	V = (tmp s< 0) != N;
 }
 
 :"" rx12_15 -= ry8_11 * rz4_7 is op6_15=0b1111111010 & op4=1; rx12_15 & ry8_11 & rz4_7 {
-	rx12_15 = rx12_15 - ry8_11 * rz4_7;
+	local tmp:8 = sext(rx12_15) - (sext(ry8_11) * sext(rz4_7));
+	rx12_15 = rx12_15 - (ry8_11 * rz4_7);
+	flags_nz(rx12_15);
+	C = sborrow(rx12_15, ry8_11 * rz4_7);
+	V = (tmp s< 0) != N;
 }
 
-:"" rx12_15 = ry8_11 / rz4_7 is op4_15=0b111111101100 ; rx12_15 & ry8_11 & rz4_7 {
+# Div by zero is some kind of exception 
+:"" rx12_15 = ry8_11 / rz4_7 "(u)" is op4_15=0b111111101100 ; rx12_15 & ry8_11 & rz4_7 {
 	rx12_15 = ry8_11 / rz4_7;
+	N = rx12_15 s< 0;
 }
 
-:"" rx12_15 = ry8_11 % rz4_7 is op4_15=0b111111101101 ; rx12_15 & ry8_11 & rz4_7 {
+:"" rx12_15 = ry8_11 % rz4_7 "(u)" is op4_15=0b111111101101 ; rx12_15 & ry8_11 & rz4_7 {
 	rx12_15 = ry8_11 % rz4_7;
+	N = rx12_15 s< 0;
 }
 
-:"" rx12_15 = ry8_11 / rz4_7 is op4_15=0b111111101110 ; rx12_15 & ry8_11 & rz4_7 {
+:"" rx12_15 = ry8_11 / rz4_7 "(s)" is op4_15=0b111111101110 ; rx12_15 & ry8_11 & rz4_7 {
 	rx12_15 = ry8_11 s/ rz4_7;
+	N = rx12_15 s< 0;
 }
 
-:"" rx12_15 = ry8_11 % rz4_7 is op4_15=0b111111101111 ; rx12_15 & ry8_11 & rz4_7 {
+:"" rx12_15 = ry8_11 % rz4_7 "(s)" is op4_15=0b111111101111 ; rx12_15 & ry8_11 & rz4_7 {
 	rx12_15 = ry8_11 s% rz4_7;
+	N = rx12_15 s< 0;
 }
 
 
