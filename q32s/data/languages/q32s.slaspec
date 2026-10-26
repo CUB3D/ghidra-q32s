@@ -84,6 +84,7 @@ define token opbyte (16)
 	imm0_4 = (0, 4)
 	imm0_6 = (0, 6)
 	imm0_7 = (0, 7)
+	imm3_7 = (3, 7)
 	imm3_10 = (3, 10)
 	imm4_5 = (4, 5)
 	imm4_7 = (4, 7)
@@ -1301,8 +1302,8 @@ srreglist:"" is stage=6 { }
 
 :"" rx0_3 = imm is op9_15=0b0000011 & imm4_8 & rx0_3 [imm = (1<<5) | imm4_8;] {
     local tmp:1 = imm;
-    imm = (imm << 2) s>> 2;
-	rx0_3 = sext(imm);
+    tmp = (tmp << 2) s>> 2;
+    rx0_3 = sext(tmp);
 }
 
 :"" rx0_3 = ry4_7 is op8_15=0b00001000 & ry4_7 & rx0_3 {
@@ -2258,7 +2259,8 @@ weirdimm: imm is op7_11=0b01100 & imm0_6 [imm = (1<<25) | (imm0_6 << 18);] { exp
 weirdimm: imm is op7_11=0b01101 & imm0_6 [imm = (1<<26) | (imm0_6 << 19);] { export *[const]:4 imm; }
 weirdimm: imm is op7_11=0b01110 & imm0_6 [imm = (1<<27) | (imm0_6 << 20);] { export *[const]:4 imm; }
 weirdimm: imm is op7_11=0b01111 & imm0_6 [imm = (1<<28) | (imm0_6 << 21);] { export *[const]:4 imm; }
-weirdimm: imm is op7_11=0b10001 & imm0_6 [imm = (1<<29) | (imm0_6 << 22);] { export *[const]:4 imm; }
+weirdimm: imm is op7_11=0b10000 & imm0_6 [imm = (1<<29) | (imm0_6 << 22);] { export *[const]:4 imm; }
+weirdimm: imm is op7_11=0b10001 & imm0_6 [imm = (1<<30) | (imm0_6 << 23);] { export *[const]:4 imm; }
 
 weirdimm: imm0_7 is op8_11=0b1001 & imm0_7 { export *[const]:4 imm0_7; }
 weirdimm: imm is op8_11=0b1010 & imm0_7 [ imm = imm0_7 << 8; ] { export *[const]:4 imm; }
@@ -2446,17 +2448,17 @@ weirdimm: imm is op8_11=0b1111 & imm0_7 [ imm = (imm0_7 << 24) | (imm0_7 << 16) 
 
 # halfword mem offset shifted reg
 
-:"" rx0_3 = "h"[ry12_15 + rz8_11"<<"1] "(u)" is op4_15=0b111110000100 & rx0_3 ; ry12_15 & rz8_11 & imm0_7=0 {
+:"" rx0_3 = "h"[ry12_15 + rz8_11"<<"1] "(u)" is op4_15=0b111110000100 & rx0_3 ; ry12_15 & rz8_11 & imm0_7 {
 	local ea:4 = ry12_15 + rz8_11<<1;
 	rx0_3 = zext(*[ram]:2 ea);
 }
 
-:"" "h"[ry12_15 + rz8_11"<<"1] = rx0_3 is op4_15=0b111110000101 & rx0_3 ; ry12_15 & rz8_11 & imm0_7=0 {
+:"" "h"[ry12_15 + rz8_11"<<"1] = rx0_3 is op4_15=0b111110000101 & rx0_3 ; ry12_15 & rz8_11 & imm0_7 {
 	local ea:4 = ry12_15 + rz8_11<<1;
 	*[ram]:2 ea = rx0_3:2;
 }
 
-:"" rx0_3 = "h"[ry12_15 + rz8_11"<<"1] "(s)" is op4_15=0b111110000110 & rx0_3 ; ry12_15 & rz8_11 & imm0_7=0 {
+:"" rx0_3 = "h"[ry12_15 + rz8_11"<<"1] "(s)" is op4_15=0b111110000110 & rx0_3 ; ry12_15 & rz8_11 & imm0_7 {
 	local ea:4 = ry12_15 + rz8_11<<1;
 	rx0_3 = sext(*[ram]:2 ea);
 }
@@ -2515,33 +2517,33 @@ weirdimm: imm is op8_11=0b1111 & imm0_7 [ imm = (imm0_7 << 24) | (imm0_7 << 16) 
 
 
 # byte mem offset reg
-:"" rx0_3 = "b"[ry12_15 + rz8_11] "(u)" is op7_15=0b111110100 & imm4_5=0b00 & rx0_3 ; ry12_15 & rz8_11 & imm0_7=0 {
+:"" rx0_3 = "b"[ry12_15 + rz8_11] "(u)" is op7_15=0b111110100 & imm4_5=0b00 & rx0_3 ; ry12_15 & rz8_11 & imm0_7 {
 	local ea:4 = ry12_15 + rz8_11;
 	rx0_3 = zext(*[ram]:1 ea);
 }
 
-:"" "b"[ry12_15 + rz8_11] = rx0_3 is op7_15=0b111110100 & imm4_5=0b01 & rx0_3 ; ry12_15 & rz8_11 & imm0_7=0 {
+:"" "b"[ry12_15 + rz8_11] = rx0_3 is op7_15=0b111110100 & imm4_5=0b01 & rx0_3 ; ry12_15 & rz8_11 & imm0_7 {
 	local ea:4 = ry12_15 + rz8_11;
 	*[ram]:1 ea = rx0_3;
 }
 
-:"" rx0_3 = "b"[ry12_15 + rz8_11] "(s)" is op7_15=0b111110100 & imm4_5=0b10 & rx0_3 ; ry12_15 & rz8_11 & imm0_7=0 {
+:"" rx0_3 = "b"[ry12_15 + rz8_11] "(s)" is op7_15=0b111110100 & imm4_5=0b10 & rx0_3 ; ry12_15 & rz8_11 & imm0_7 {
 	local ea:4 = ry12_15 + rz8_11;
 	rx0_3 = sext(*[ram]:1 ea);
 }
 
-:"" rx0_3 = "b"[ry12_15 ++= rz8_11] "(s)" is op7_15=0b111110101 & imm4_5=0b00 & rx0_3 ; ry12_15 & rz8_11 & imm0_7=0 {
-	rx0_3 = sext(*[ram]:1 ry12_15);
+:"" rx0_3 = "b"[ry12_15 ++= rz8_11] "(u)" is op7_15=0b111110101 & imm4_5=0b00 & rx0_3 ; ry12_15 & rz8_11 & imm0_7 {
+	rx0_3 = zext(*[ram]:1 ry12_15);
 	ry12_15 = ry12_15 + rz8_11;
 }
 
-:"" "b"[ry12_15 ++= rz8_11] = rx0_3 is op7_15=0b111110101 & imm4_5=0b01 & rx0_3 ; ry12_15 & rz8_11 & imm0_7=0 {
+:"" "b"[ry12_15 ++= rz8_11] = rx0_3 is op7_15=0b111110101 & imm4_5=0b01 & rx0_3 ; ry12_15 & rz8_11 & imm0_7 {
 	*[ram]:1 ry12_15 = rx0_3:1;
 	ry12_15 = ry12_15 + rz8_11;
 }
 
-:"" rx0_3 = "b"[ry12_15 ++= rz8_11] "(u)" is op7_15=0b111110101 & imm4_5=0b10 & rx0_3 ; ry12_15 & rz8_11 & imm0_7=0 {
-	rx0_3 = zext(*[ram]:1 ry12_15);
+:"" rx0_3 = "b"[ry12_15 ++= rz8_11] "(s)" is op7_15=0b111110101 & imm4_5=0b10 & rx0_3 ; ry12_15 & rz8_11 & imm0_7 {
+	rx0_3 = sext(*[ram]:1 ry12_15);
 	ry12_15 = ry12_15 + rz8_11;
 }
 
@@ -2676,7 +2678,7 @@ weirdimm: imm is op8_11=0b1111 & imm0_7 [ imm = (imm0_7 << 24) | (imm0_7 << 16) 
 }
 
 :"" rx0_3 = ry12_15 "^" weirdimm is op4_15=0b111111010001 & rx0_3 ; ry12_15 & weirdimm {
-	rx0_3 = ry12_15 "^" weirdimm;
+	rx0_3 = ry12_15 ^ weirdimm;
 	flags_nz(rx0_3);
 }
 
@@ -2817,7 +2819,7 @@ shiftimm3_7: 32 is imm3_7=0 { local tmp:4 = 32; export *[const]:4 tmp; }
 
 # Unsigned right shift
 :"" rx12_15 = ry8_11 ">>" shiftimm3_7 is op0_15=0b1111110111110010 ; rx12_15 & ry8_11 & shiftimm3_7 {
-	C = ((ry8_11 >> (imm3_7 - 1)) & 1) != 0;
+	C = ((ry8_11 >> (shiftimm3_7 - 1)) & 1) != 0;
 	rx12_15 = ry8_11 >> shiftimm3_7;
 	flags_nz(rx12_15);
 }
@@ -2836,7 +2838,7 @@ shiftimm3_7: 32 is imm3_7=0 { local tmp:4 = 32; export *[const]:4 tmp; }
 
 :"" rx12_15 = ry8_11 "<c>" shiftimm3_7 is op1_15=0b111111011111011 ; rx12_15 & ry8_11 & shiftimm3_7 {
 	local tmp:8 = (zext(C) << 32) | zext(ry8_11);
-	tmp = (tmp >> imm3_7) | (tmp << (33 - shiftimm3_7));
+	tmp = (tmp >> shiftimm3_7) | (tmp << (33 - shiftimm3_7));
 	C = (tmp & 0x100000000) != 0;
 	rx12_15 = tmp:4;
 	Z = rx12_15 == 0;
@@ -3066,37 +3068,6 @@ shiftimm3_7: 32 is imm3_7=0 { local tmp:4 = 32; export *[const]:4 tmp; }
     goto [gotoimm32];
 }
 :ifs (rx12_15 "??" imm0_11) "goto" gotoimm32 is op7_15=0b111111110 & op5_6=0b00 & op0_3=0b1111 ; rx12_15 & imm0_11 ; gotoimm32 {}
-
-
-
-:if ((rx12_15 & weirdimm) "==" 0) "goto" gotoimm32 is op5_15=0b11111111011 & imm0=0 ; rx12_15 & weirdimm ; gotoimm32 {
-	local tmp:4 = rx12_15 & weirdimm;
-	if(tmp != 0) goto <end>;
-		goto [gotoimm32];
-	<end>
-}
-
-:if ((rx12_15 & weirdimm) "!=" 0 ) "goto" gotoimm32 is op5_15=0b11111111011 & op0=1 ; rx12_15 & weirdimm ; gotoimm32 {
-	local tmp:4 = rx12_15 & weirdimm;
-	if(tmp == 0) goto <end>;
-		goto [gotoimm32];
-	<end>
-}
-
-
-:call imm is op6_15=0b1111111110 ; imm0_15 ; imm0_15_dup [ imm = (inst_next + (imm0_15 | (imm0_15_dup << 16)) & 0x1FFFFFF); ] {
-	rets = inst_next;
-	local tmp:4 = imm;
-	call [tmp];
-}
-
-:"" srx0_3 = imm is op5_15=0b11111111111 & srx0_3 ; imm0_15 ; imm0_15_dup [ imm = imm0_15 | (imm0_15_dup << 16); ] {
-	srx0_3 = imm;
-}
-
-:"" rx0_3 = imm is op5_15=0b11111111110 & rx0_3 ; imm0_15 ; imm0_15_dup [ imm = imm0_15 | (imm0_15_dup << 16); ] {
-	rx0_3 = imm;
-}
 
 
 # 10 -> reg reg forms
