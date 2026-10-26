@@ -1,7 +1,9 @@
 <opinions>
 
     <constraint loader="Executable and Linking Format (ELF)" compilerSpecID="default">
-    		<constraint primary="242" processor="q32s"  size="32" variant="default" />
+    		<constraint primary="242" processor="q32s"  size="32" variant="AW631N" />
+    		<constraint primary="242" processor="q32s"  size="32" variant="AW632N" />
+    		<constraint primary="242" processor="q32s"  size="32" variant="AC635N" />
     </constraint>
 
 
